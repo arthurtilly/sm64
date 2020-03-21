@@ -375,9 +375,9 @@ void bobomb_buddy_act_talk(void) {
 
             case BOBOMB_BUDDY_ROLE_CANNON:
                 if (gCurrCourseNum == COURSE_BOB)
-                    bobomb_buddy_cannon_dialog(DIALOG_004, DIALOG_105);
+                    bobomb_buddy_cannon_dialog(0, 0);
                 else
-                    bobomb_buddy_cannon_dialog(DIALOG_047, DIALOG_106);
+                    bobomb_buddy_cannon_dialog(0, 0);
                 break;
         }
     }

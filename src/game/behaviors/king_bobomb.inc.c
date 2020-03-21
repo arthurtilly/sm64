@@ -35,7 +35,7 @@ void king_bobomb_act_0(void) {
             o->oSubAction++;
             func_8031FFB4(0, 60, 40);
         }
-    } else if (cur_obj_update_dialog_with_cutscene(2, 1, CUTSCENE_DIALOG, DIALOG_017)) {
+    } else if (cur_obj_update_dialog_with_cutscene(2, 1, CUTSCENE_DIALOG, 0)) {
         o->oAction = 2;
         o->oFlags |= OBJ_FLAG_HOLDABLE;
     }
@@ -170,7 +170,7 @@ void king_bobomb_act_6(void) {
 
 void king_bobomb_act_7(void) {
     cur_obj_init_animation_with_sound(2);
-    if (cur_obj_update_dialog_with_cutscene(2, 2, CUTSCENE_DIALOG, DIALOG_116)) {
+    if (cur_obj_update_dialog_with_cutscene(2, 2, CUTSCENE_DIALOG, 0)) {
         create_sound_spawner(SOUND_OBJ_KING_WHOMP_DEATH);
         cur_obj_hide();
         cur_obj_become_intangible();
@@ -262,7 +262,7 @@ void king_bobomb_act_5() { // bobomb returns home
                 o->oSubAction++;
             break;
         case 4:
-            if (cur_obj_update_dialog_with_cutscene(2, 1, CUTSCENE_DIALOG, DIALOG_128))
+            if (cur_obj_update_dialog_with_cutscene(2, 1, CUTSCENE_DIALOG, 0))
                 o->oAction = 2;
             break;
     }

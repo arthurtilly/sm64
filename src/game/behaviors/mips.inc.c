@@ -238,9 +238,9 @@ void bhv_mips_held(void) {
     if (o->oMipsStarStatus == MIPS_STAR_STATUS_HAVENT_SPAWNED_STAR) {
         // Choose dialog based on which MIPS encounter this is.
         if (o->oBehParams2ndByte == 0)
-            dialogID = DIALOG_084;
+            dialogID = 0;
         else
-            dialogID = DIALOG_162;
+            dialogID = 0;
 
         if (set_mario_npc_dialog(1) == 2) {
             o->activeFlags |= ACTIVE_FLAG_INITIATED_TIME_STOP;

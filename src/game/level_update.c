@@ -245,15 +245,15 @@ void load_level_init_text(u32 arg) {
     u32 dialogID = gCurrentArea->dialog[arg];
 
     switch (dialogID) {
-        case DIALOG_129:
+        case 0:
             gotAchievement = save_file_get_flags() & SAVE_FLAG_HAVE_VANISH_CAP;
             break;
 
-        case DIALOG_130:
+        case 1:
             gotAchievement = save_file_get_flags() & SAVE_FLAG_HAVE_METAL_CAP;
             break;
 
-        case DIALOG_131:
+        case 2:
             gotAchievement = save_file_get_flags() & SAVE_FLAG_HAVE_WING_CAP;
             break;
 

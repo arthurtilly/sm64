@@ -32,7 +32,7 @@ s8 D_8032F4FC[] = { 7, 8, 9, 12, 13, 14, 15, 4, 3, 16, 17, 19, 3, 3, 3, 3 };
 s16 D_8032F50C[] = { 60, 0 };
 s16 D_8032F510[] = { 50, 0 };
 s8 D_8032F514[] = { 24, 42, 60, -1 };
-s16 sBowserDefeatedDialogText[3] = { DIALOG_119, DIALOG_120, DIALOG_121 };
+s16 sBowserDefeatedDialogText[3] = { 0, 0, 0 };
 s16 D_8032F520[][3] = { { 1, 10, 40 },   { 0, 0, 74 },    { -1, -10, 114 },  { 1, -20, 134 },
                         { -1, 20, 154 }, { 1, 40, 164 },  { -1, -40, 174 },  { 1, -80, 179 },
                         { -1, 80, 184 }, { 1, 160, 186 }, { -1, -160, 186 }, { 1, 0, 0 }, };
@@ -855,9 +855,9 @@ s32 bowser_dead_bits_end(void) {
     s32 dialogID;
     if (o->oBowserUnkF8 < 2) {
         if (gHudDisplay.stars < 120)
-            dialogID = DIALOG_121;
+            dialogID = 0;
         else
-            dialogID = DIALOG_163;
+            dialogID = 0;
         if (o->oBowserUnkF8 == 0) {
             func_8031FFB4(0, 60, 40);
             o->oBowserUnkF8++;

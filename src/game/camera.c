@@ -6896,7 +6896,7 @@ s16 cutscene_object_with_dialog(u8 cutscene, struct Object *o, s16 dialogID) {
             if (dialogID != -1) {
                 sCutsceneDialogID = dialogID;
             } else {
-                sCutsceneDialogID = DIALOG_001;
+                sCutsceneDialogID = 0;
             }
         } else {
             response = sCutsceneDialogResponse;
@@ -8143,13 +8143,13 @@ BAD_RETURN(s32) bowser_fight_intro_dialog(UNUSED struct Camera *c) {
 
     switch (gCurrLevelNum) {
         case LEVEL_BOWSER_1:
-            dialog = DIALOG_067;
+            dialog = 0;
             break;
         case LEVEL_BOWSER_2:
-            dialog = DIALOG_092;
+            dialog = 0;
             break;
         default:
-            dialog = DIALOG_093;
+            dialog = 0;
     }
 
     create_dialog_box(dialog);
@@ -9379,7 +9379,7 @@ BAD_RETURN(s32) cutscene_cap_switch_press_pan_left(struct Camera *c) {
  * Create a dialog box with the cap switch's text.
  */
 BAD_RETURN(s32) cutscene_cap_switch_press_create_dialog(UNUSED struct Camera *c) {
-    create_dialog_box_with_response(gCutsceneFocus->oBehParams2ndByte + DIALOG_010);
+    create_dialog_box_with_response(gCutsceneFocus->oBehParams2ndByte + 0);
 }
 
 static UNUSED BAD_RETURN(s32) unused_cap_switch_retrieve_info(struct Camera *c) {
@@ -9518,7 +9518,7 @@ s32 intro_peach_move_camera_start_to_pipe(struct Camera *c, struct CutsceneSplin
  * Create a dialog box with the letter text
  */
 BAD_RETURN(s32) peach_letter_text(UNUSED struct Camera *c) {
-    create_dialog_box(DIALOG_020);
+    create_dialog_box(0);
 }
 
 #ifndef VERSION_JP
@@ -9588,7 +9588,7 @@ BAD_RETURN(s32) cutscene_intro_peach_handheld_shake_off(UNUSED struct Camera *c)
 }
 
 BAD_RETURN(s32) intro_pipe_exit_text(UNUSED struct Camera *c) {
-    create_dialog_box(DIALOG_033);
+    create_dialog_box(0);
 }
 
 #ifndef VERSION_JP

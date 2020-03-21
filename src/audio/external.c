@@ -2071,18 +2071,6 @@ void func_80320A4C(u8 bankIndex, u8 arg1) {
     D_80363808[bankIndex] = arg1;
 }
 
-void play_dialog_sound(u8 dialogID) {
-    u8 speaker;
-
-    if (dialogID >= 170) {
-        dialogID = 0;
-    }
-
-    if (dialogID == DIALOG_010 || dialogID == DIALOG_011 || dialogID == DIALOG_012) {
-        play_puzzle_jingle();
-    }
-}
-
 void play_music(u8 player, u16 seqArgs, u16 fadeTimer) {
     u8 seqId = seqArgs & 0xff;
     u8 priority = seqArgs >> 8;

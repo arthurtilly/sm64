@@ -384,7 +384,7 @@ void ukiki_act_go_to_cage(void) {
         case UKIKI_SUB_ACT_CAGE_TALK_TO_MARIO:
             cur_obj_init_animation_with_sound(UKIKI_ANIM_HANDSTAND);
 
-            if (cur_obj_update_dialog_with_cutscene(3, 1, CUTSCENE_DIALOG, DIALOG_080)) {
+            if (cur_obj_update_dialog_with_cutscene(3, 1, CUTSCENE_DIALOG, 0)) {
                 o->oSubAction++;
             }
             break;
@@ -518,7 +518,7 @@ void cage_ukiki_held_loop(void) {
         switch(o->oUkikiTextState) {
             case UKIKI_TEXT_DEFAULT:
                 if (set_mario_npc_dialog(2) == 2) {
-                    create_dialog_box_with_response(DIALOG_079);
+                    create_dialog_box_with_response(0);
                     o->oUkikiTextState = UKIKI_TEXT_CAGE_TEXTBOX;
                 }
                 break;
@@ -568,7 +568,7 @@ void hat_ukiki_held_loop(void) {
             break;
 
         case UKIKI_TEXT_STEAL_HAT:
-            if (cur_obj_update_dialog(2, 2, DIALOG_100, 0)) {
+            if (cur_obj_update_dialog(2, 2, 0, 0)) {
                 o->oInteractionSubtype |= INT_SUBTYPE_DROP_IMMEDIATELY;
                 o->oUkikiTextState = UKIKI_TEXT_STOLE_HAT;
             }
@@ -578,7 +578,7 @@ void hat_ukiki_held_loop(void) {
             break;
 
         case UKIKI_TEXT_HAS_HAT:
-            if (cur_obj_update_dialog(2, 18, DIALOG_101, 0)) {
+            if (cur_obj_update_dialog(2, 18, 0, 0)) {
                 mario_retrieve_cap();
                 set_mario_npc_dialog(0);
                 o->oUkikiHasHat &= ~UKIKI_HAT_ON;

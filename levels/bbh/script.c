@@ -114,7 +114,7 @@ const LevelScript level_bbh_entry[] = {
         TERRAIN(/*terrainData*/ bbh_seg7_collision_level),
         MACRO_OBJECTS(/*objList*/ bbh_seg7_macro_objs),
         ROOMS(/*surfaceRooms*/ bbh_seg7_rooms),
-        SHOW_DIALOG(/*index*/ 0x00, DIALOG_098),
+        SHOW_DIALOG(/*index*/ 0x00, 0),
         SET_BACKGROUND_MUSIC(/*settingsPreset*/ 0x0006, /*seq*/ SEQ_LEVEL_SPOOKY),
         TERRAIN_TYPE(/*terrainType*/ TERRAIN_SPOOKY),
     END_AREA(),
