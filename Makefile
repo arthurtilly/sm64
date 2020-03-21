@@ -368,7 +368,7 @@ $(BUILD_DIR)/text/%/define_courses.inc.c: text/define_courses.inc.c text/%/cours
 	$(CPP) $(VERSION_CFLAGS) $< -o $@ -I text/$*/
 	$(TEXTCONV) charmap.txt $@ $@
 
-$(BUILD_DIR)/text/%/define_text.inc.c: text/define_text.inc.c text/%/courses.h text/%/dialogs.h
+$(BUILD_DIR)/text/%/define_text.inc.c: text/define_text.inc.c text/%/courses.h text/%/dialogs.h text/%/dialog_text.h
 	$(CPP) $(VERSION_CFLAGS) $< -o $@ -I text/$*/
 	$(TEXTCONV) charmap.txt $@ $@
 

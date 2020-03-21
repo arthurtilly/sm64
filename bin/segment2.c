@@ -1,6 +1,7 @@
 #include <ultra64.h>
 #include "sm64.h"
 #include "game/ingame_menu.h"
+#include "dialog_ids.h"
 
 #include "make_const_nonconst.h"
 
@@ -2163,19 +2164,43 @@ const Gfx dl_rgba16_text_end[] = {
 
 // 0x0200EDA8 - 0x0200EDE8
 static const Vtx vertex_text_bg_box[] = {
-    {{{     0,    -80,      0}, 0, {     0,      0}, {0xff, 0xff, 0xff, 0xff}}},
-    {{{   130,    -80,      0}, 0, {     0,      0}, {0xff, 0xff, 0xff, 0xff}}},
-    {{{   130,      0,      0}, 0, {     0,      0}, {0xff, 0xff, 0xff, 0xff}}},
-    {{{     0,      0,      0}, 0, {     0,      0}, {0xff, 0xff, 0xff, 0xff}}},
+    {{{     0,    0,      0}, 0, {     0,      0}, {0x00, 0x00, 0x00, 0x96}}},
+    {{{   360,    0,      0}, 0, {     0,      0}, {0x00, 0x00, 0x00, 0x96}}},
+    {{{   360,   65,      0}, 0, {     0,      0}, {0x00, 0x00, 0x00, 0x96}}},
+    {{{     0,   65,      0}, 0, {     0,      0}, {0x00, 0x00, 0x00, 0x96}}},
+    {{{     0,   65,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{   60,   65,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{   60,   80,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{     0,   80,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{   130,   65,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   115,   80,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
 };
 
 // 0x0200EDE8 - 0x0200EE28
 const Gfx dl_draw_text_bg_box[] = {
     gsDPPipeSync(),
     gsSPClearGeometryMode(G_LIGHTING),
+    gsDPSetRenderMode(G_RM_XLU_SURF, G_RM_XLU_SURF2),
+    gsSPVertex(vertex_text_bg_box, 10, 0),
+    gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+    gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+    gsSP2Triangles( 5,  8,  9, 0x0,  5,  9,  6, 0x0),
+    gsSPEndDisplayList(),
+};
+
+static const Vtx vertex_text_option_box[] = {
+    {{{     0,    0,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   500,    0,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   500,   20,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{     8,   20,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+};
+
+const Gfx dl_draw_text_option_box[] = {
+    gsDPPipeSync(),
+    gsSPClearGeometryMode(G_LIGHTING),
     gsDPSetCombineMode(G_CC_FADE, G_CC_FADE),
     gsDPSetRenderMode(G_RM_XLU_SURF, G_RM_XLU_SURF2),
-    gsSPVertex(vertex_text_bg_box, 4, 0),
+    gsSPVertex(vertex_text_option_box, 4, 0),
     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
     gsSPEndDisplayList(),
 };

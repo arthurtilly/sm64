@@ -22,11 +22,11 @@ static const u8 Debug1[] = {
 };
 
 static const struct DialogEntry debug_text_entry_0 = {
-    1, 8, 30, 200, Debug0
+    NULL
 };
 
 static const struct DialogEntry debug_text_entry_1 = {
-    1, 3, 100, 150, Debug1
+    NULL
 };
 
 const struct DialogEntry *const seg2_debug_text_table[] = {
@@ -35,25 +35,27 @@ const struct DialogEntry *const seg2_debug_text_table[] = {
 
 #endif
 
-
 // == dialog ==
 // (defines en_dialog_table etc.)
 
-#define DEFINE_DIALOG(id, _1, _2, _3, _4, str) \
-    static const u8 dialog_text_ ## id[] = { str };
+#include "dialog_text.h"
 
+#define DEFINE_DIALOG(id, dialog, options) \
+    static struct DialogBox *dialog_text_ ## id = dialog; \
+    static struct DialogOption *dialog_options_ ## id = options;
+   
 #include "dialogs.h"
 
 #undef DEFINE_DIALOG
-#define DEFINE_DIALOG(id, unused, linesPerBox, leftOffset, width, _) \
-    static const struct DialogEntry dialog_entry_ ## id = { \
-        unused, linesPerBox, leftOffset, width, dialog_text_ ## id \
+#define DEFINE_DIALOG(id, _1, _2) \
+    static struct DialogEntry dialog_entry_ ## id = { \
+        &dialog_text_ ## id, &dialog_options_ ## id \
     };
-
+    
 #include "dialogs.h"
 
 #undef DEFINE_DIALOG
-#define DEFINE_DIALOG(id, _1, _2, _3, _4, _5) &dialog_entry_ ## id,
+#define DEFINE_DIALOG(id, _1, _2) &dialog_entry_ ## id,
 
 const struct DialogEntry *const seg2_dialog_table[] = {
 #include "dialogs.h"
@@ -79,7 +81,7 @@ const struct DialogEntry *const seg2_dialog_table[] = {
     static const u8 act_name_ ## id ## _4[] = { d }; \
     static const u8 act_name_ ## id ## _5[] = { e }; \
     static const u8 act_name_ ## id ## _6[] = { f };
-
+    
 #define SECRET_STAR(id, name)
 #define CASTLE_SECRET_STARS(str)
 

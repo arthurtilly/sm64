@@ -215,53 +215,6 @@ s32 gAudioErrorFlags = 0;
 #endif
 s32 sGameLoopTicked = 0;
 
-// Dialog sounds
-// The US difference is the sound for DIALOG_037 ("I win! You lose! Ha ha ha ha!
-// You're no slouch, but I'm a better sledder! Better luck next time!"), spoken
-// by Koopa instead of the penguin in JP.
-
-#define UKIKI 0
-#define TUXIE 1
-#define BOWS1 2 // Bowser Intro / Doors Laugh
-#define KOOPA 3
-#define KBOMB 4
-#define BOO 5
-#define BOMB 6
-#define BOWS2 7 // Bowser Battle Laugh
-#define GRUNT 8
-#define WIGLR 9
-#define YOSHI 10
-#define _ 0xFF
-
-#ifdef VERSION_JP
-#define DIFF KOOPA
-#else
-#define DIFF TUXIE
-#endif
-
-u8 sDialogSpeaker[] = {
-    //       0      1      2      3      4      5      6      7      8      9
-    /* 0*/ _,     BOMB,  BOMB,  BOMB,  BOMB,  KOOPA, KOOPA, KOOPA, _,     KOOPA,
-    /* 1*/ _,     _,     _,     _,     _,     _,     _,     KBOMB, _,     _,
-    /* 2*/ _,     BOWS1, BOWS1, BOWS1, BOWS1, BOWS1, BOWS1, BOWS1, BOWS1, BOWS1,
-    /* 3*/ _,     _,     _,     _,     _,     _,     _,     DIFF,  _,     _,
-    /* 4*/ _,     KOOPA, _,     _,     _,     _,     _,     BOMB,  _,     _,
-    /* 5*/ _,     _,     _,     _,     _,     TUXIE, TUXIE, TUXIE, TUXIE, TUXIE,
-    /* 6*/ _,     _,     _,     _,     _,     _,     _,     BOWS2, _,     _,
-    /* 7*/ _,     _,     _,     _,     _,     _,     _,     _,     _,     UKIKI,
-    /* 8*/ UKIKI, _,     _,     _,     _,     BOO,   _,     _,     _,     _,
-    /* 9*/ BOWS2, _,     BOWS2, BOWS2, _,     _,     _,     _,     BOO,   BOO,
-    /*10*/ UKIKI, UKIKI, _,     _,     _,     BOMB,  BOMB,  BOO,   BOO,   _,
-    /*11*/ _,     _,     _,     _,     GRUNT, GRUNT, KBOMB, GRUNT, GRUNT, _,
-    /*12*/ _,     _,     _,     _,     _,     _,     _,     _,     KBOMB, _,
-    /*13*/ _,     _,     TUXIE, _,     _,     _,     _,     _,     _,     _,
-    /*14*/ _,     _,     _,     _,     _,     _,     _,     _,     _,     _,
-    /*15*/ WIGLR, WIGLR, WIGLR, _,     _,     _,     _,     _,     _,     _,
-    /*16*/ _,     YOSHI, _,     _,     _,     _,     _,     _,     WIGLR, _
-};
-#undef _
-STATIC_ASSERT(ARRAY_COUNT(sDialogSpeaker) == DIALOG_COUNT, "change this array if you are adding dialogs");
-
 s32 sDialogSpeakerVoice[] = {
     SOUND_OBJ_UKIKI_CHATTER_LONG,
     SOUND_OBJ_BIG_PENGUIN_YELL,
@@ -2125,21 +2078,9 @@ void play_dialog_sound(u8 dialogID) {
         dialogID = 0;
     }
 
-    speaker = sDialogSpeaker[dialogID];
-    if (speaker != 0xff) {
-        play_sound(sDialogSpeakerVoice[speaker], gDefaultSoundArgs);
-        if (speaker == 2) // SOUND_OBJ_BOWSER_INTRO_LAUGH
-        {
-            play_sequence(1, SEQ_EVENT_KOOPA_MESSAGE, 0);
-        }
-    }
-
-#ifndef VERSION_JP
-    // "You've stepped on the (Wing|Metal|Vanish) Cap Switch"
     if (dialogID == DIALOG_010 || dialogID == DIALOG_011 || dialogID == DIALOG_012) {
         play_puzzle_jingle();
     }
-#endif
 }
 
 void play_music(u8 player, u16 seqArgs, u16 fadeTimer) {

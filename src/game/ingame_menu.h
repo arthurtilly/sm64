@@ -34,13 +34,23 @@
 extern s8 gDialogCourseActNum;
 extern s8 gHudFlash;
 
+struct DialogBox
+{
+    u8 *name;
+    s32 port;
+    u8 *str;
+};
+
+struct DialogOption
+{
+    u8 *text;
+    s32 dialogID;
+};
+
 struct DialogEntry
 {
- /*0x00*/ u32 unused;
- /*0x04*/ s8 linesPerBox;
- /*0x06*/ s16 leftOffset;
- /*0x08*/ s16 width;
- /*0x0C*/ const u8 *str;
+    struct DialogBox **boxes;
+    struct DialogOption **options;
 };
 
 // EU only
@@ -100,6 +110,7 @@ enum DialogSpecialChars {
     DIALOG_CHAR_DAKUTEN = 0xF0,
     DIALOG_CHAR_PERIOD_OR_HANDAKUTEN = 0xF1,
     DIALOG_CHAR_STAR_FILLED = 0xFA,
+    DIALOG_CHAR_CHANGE_COLOR = 0xFC,
     DIALOG_CHAR_STAR_OPEN = 0xFD,
     DIALOG_CHAR_NEWLINE = 0xFE,
     DIALOG_CHAR_TERMINATOR = 0xFF
