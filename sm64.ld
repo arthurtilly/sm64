@@ -134,6 +134,7 @@ SECTIONS
       BUILD_DIR/src/game/paintings.o(.text);
       BUILD_DIR/src/game/print.o(.text);
       BUILD_DIR/src/game/ingame_menu.o(.text);
+      BUILD_DIR/src/game/dialog_proc.o(.text);
       BUILD_DIR/src/game/envfx_snow.o(.text);
       BUILD_DIR/src/game/envfx_bubbles.o(.text);
       BUILD_DIR/src/game/macro_special_objects.o(.text);
@@ -409,6 +410,7 @@ SECTIONS
       BUILD_DIR/src/game/paintings.o(.data*);
       BUILD_DIR/src/game/print.o(.data*);
       BUILD_DIR/src/game/ingame_menu.o(.data*);
+      BUILD_DIR/src/game/dialog_proc.o(.data*);
       BUILD_DIR/src/game/envfx_snow.o(.data*);
       BUILD_DIR/src/game/envfx_bubbles.o(.data*);
       BUILD_DIR/src/game/macro_special_objects.o(.data*);
@@ -511,6 +513,7 @@ SECTIONS
       BUILD_DIR/src/game/paintings.o(.rodata*);
       BUILD_DIR/src/game/print.o(.rodata*);
       BUILD_DIR/src/game/ingame_menu.o(.rodata*);
+      BUILD_DIR/src/game/dialog_proc.o(.rodata*);
       BUILD_DIR/src/game/envfx_snow.o(.rodata*);
       BUILD_DIR/src/game/envfx_bubbles.o(.rodata*);
       BUILD_DIR/src/game/macro_special_objects.o(.rodata*);
@@ -598,6 +601,7 @@ SECTIONS
       BUILD_DIR/src/game/paintings.o(.bss*);
       BUILD_DIR/src/game/print.o(.bss*);
       BUILD_DIR/src/game/ingame_menu.o(.bss*);
+      BUILD_DIR/src/game/dialog_proc.o(.bss*);
       BUILD_DIR/src/game/envfx_snow.o(.bss*);
       BUILD_DIR/src/game/envfx_bubbles.o(.bss*);
       BUILD_DIR/src/game/macro_special_objects.o(.bss*)

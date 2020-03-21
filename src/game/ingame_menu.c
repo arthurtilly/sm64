@@ -22,6 +22,7 @@ extern Gfx *gDisplayListHead;
 extern s32 gGlobalTimer;
 extern s16 gCurrCourseNum;
 extern s16 gCurrSaveFileNum;
+extern DialogProc dialogProcTable[];
 
 extern Gfx coin_seg3_dl_03007940[];
 extern Gfx coin_seg3_dl_03007968[];
@@ -32,7 +33,6 @@ extern u8 main_menu_seg7_table_0700ABD0[];
 extern Gfx castle_grounds_seg7_dl_0700EA58[];
 
 u16 gDialogColorFadeTimer;
-s8 gLastDialogLineNum;
 s32 gDialogVariable;
 u16 gDialogTextAlpha;
 #if defined(VERSION_EU)
@@ -107,6 +107,7 @@ s16 gDialogAdvanceIndex = 0;
 s8 gCurDialogOption = -1;
 s8 gLastDialogOption = -1;
 s8 gDialogOptionTimer = 0;
+s8 gDialogOptionsAppearingTimer = 0;
 u8 gMenuHoldKeyIndex = 0;
 u8 gMenuHoldKeyTimer = 0;
 s32 gDialogResponse = 0;
@@ -944,27 +945,33 @@ void render_dialog_options(struct DialogOption **options) {
     s32 strLength;
     f32 transitionRatio;
     struct DialogOption *option;
-    
     s8 curOption = gCurDialogOption;
     
-    if (gDialogOptionTimer == 0) {
+    if (gDialogOptionsAppearingTimer == 0) {
+        gCurDialogOption = -1;
+        gLastDialogOption = -1;
+    }
+    if (gDialogOptionsAppearingTimer < 5)
+        gDialogOptionsAppearingTimer++;
+    
+    if ((gDialogOptionTimer == 0) && (gDialogOptionsAppearingTimer == 5)){
         handle_menu_scrolling(MENU_SCROLL_VERTICAL, &curOption, 0, 3);
         if (curOption != gCurDialogOption) {
-            gDialogOptionTimer = 6;
+            gDialogOptionTimer = 5;
             gLastDialogOption = gCurDialogOption;
             gCurDialogOption = curOption;
         }
     }
     
-    create_dl_translation_matrix(MENU_MTX_PUSH, 210, 140, 0);
+    create_dl_translation_matrix(MENU_MTX_PUSH, 370 - 32*gDialogOptionsAppearingTimer, 140, 0);
     
     // Draw options
     while ((option = segmented_to_virtual((*options)+curOptionNum))->text != NULL) {
         strLength = get_string_width(segmented_to_virtual(option->text));
         if (gCurDialogOption == curOptionNum)
-            transitionRatio = 1 - (gDialogOptionTimer / 6.f);
+            transitionRatio = 1 - (gDialogOptionTimer / 5.f);
         else if (gLastDialogOption == curOptionNum)
-            transitionRatio = gDialogOptionTimer / 6.f;
+            transitionRatio = gDialogOptionTimer / 5.f;
         else
             transitionRatio = 0;
         
@@ -1036,14 +1043,17 @@ void handle_dialog_text_and_pages(struct DialogEntry *dialog, s8 lowerBound)
 
     
     if (showOptions && (gDialogAdvanceIndex == -1)) {
-            render_dialog_options(dialogOptions);
+        render_dialog_options(dialogOptions);
+    } else {
+        gDialogOptionsAppearingTimer = 0;
     }
 
     gSPDisplayList(gDisplayListHead++, dl_ia_text_begin);
     create_dl_translation_matrix(MENU_MTX_NOPUSH, 5, 45, 0);
 
     if (dialogBox->name != NULL) {
-        gDPSetEnvColor(gDisplayListHead++, 63, 26, 0, 255);
+        //gDPSetEnvColor(gDisplayListHead++, 63, 26, 0, 255);
+        gDPSetEnvColor(gDisplayListHead++, 0, 0, 0, 200);
         print_generic_string(-2,20,name); // Name of person speaking (coordinates relative to above)
     }
     gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, 255);
@@ -1122,32 +1132,6 @@ void handle_dialog_text_and_pages(struct DialogEntry *dialog, s8 lowerBound)
     }
     
     gSPDisplayList(gDisplayListHead++, dl_ia_text_end);
-
-    gLastDialogLineNum = lineNum;
-}
-
-#ifdef VERSION_JP
-#define X_VAL4_1 50
-#define X_VAL4_2 25
-#define Y_VAL4_1 1
-#define Y_VAL4_2 20
-#else
-#define X_VAL4_1 56
-#define X_VAL4_2 47
-#define Y_VAL4_1 2
-#define Y_VAL4_2 16
-#endif
-
-void render_dialog_triangle_choice(void) {
-    create_dl_translation_matrix(MENU_MTX_NOPUSH, (gDialogLineNum * X_VAL4_1) - X_VAL4_2, Y_VAL4_1 - (gLastDialogLineNum * Y_VAL4_2), 0);
-
-    if (gDialogBoxType == DIALOG_TYPE_BLACK) {
-        gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, 255);
-    } else {
-        gDPSetEnvColor(gDisplayListHead++, 0, 0, 0, 255);
-    }
-
-    gSPDisplayList(gDisplayListHead++, dl_draw_triangle);
 }
 
 #ifdef VERSION_EU
@@ -1189,50 +1173,7 @@ void render_dialog_string_color(s8 linesPerBox) {
 }
 
 void handle_special_dialog_text(s16 dialogID) { // dialog ID tables, in order
-    // King Bob-omb (Start), Whomp (Start), King Bob-omb (throw him out), Eyerock (Start), Wiggler (Start)
-    s16 dialogBossStart[] = { 17, 114, 128, 117, 150 };
-    // Koopa the Quick (BOB), Koopa the Quick (THI), Penguin Race, Fat Penguin Race (120 stars)
-    s16 dialogRaceSound[] = { 5, 9, 55, 164 };
-    // Red Switch, Green Switch, Blue Switch, 100 coins star, Bowser Red Coin Star
-    s16 dialogStarSound[] = { 10, 11, 12, 13, 14 };
-    // King Bob-omb (Start), Whomp (Defeated), King Bob-omb (Defeated, missing in JP), Eyerock (Defeated), Wiggler (Defeated)
-#if BUGFIX_KING_BOB_OMB_FADE_MUSIC
-    s16 dialogBossStop[] = { 17, 115, 116, 118, 152 };
-#else
-    //! @bug JP misses King Bob-omb defeated dialog "116", meaning that the boss music will still
-    //! play after King Bob-omb is defeated until BOB loads it's music after the star cutscene
-    s16 dialogBossStop[] = { 17, 115, 118, 152 };
-#endif
-    s16 i;
 
-    for (i = 0; i < (s16) ARRAY_COUNT(dialogBossStart); i++) {
-        if (dialogBossStart[i] == dialogID) {
-            sequence_player_unlower(0, 60);
-            play_music(0, SEQUENCE_ARGS(4, SEQ_EVENT_BOSS), 0);
-            return;
-        }
-    }
-
-    for (i = 0; i < (s16) ARRAY_COUNT(dialogRaceSound); i++) {
-        if (dialogRaceSound[i] == dialogID && gDialogLineNum == 1) {
-            play_race_fanfare();
-            return;
-        }
-    }
-
-    for (i = 0; i < (s16) ARRAY_COUNT(dialogStarSound); i++) {
-        if (dialogStarSound[i] == dialogID && gDialogLineNum == 1) {
-            play_sound(SOUND_MENU_STAR_SOUND, gDefaultSoundArgs);
-            return;
-        }
-    }
-
-    for (i = 0; i < (s16) ARRAY_COUNT(dialogBossStop); i++) {
-        if (dialogBossStop[i] == dialogID) {
-            sequence_player_fade_out(0, 1);
-            return;
-        }
-    }
 }
 
 s16 gMenuMode = -1;
@@ -1338,7 +1279,8 @@ s8 gDialogCourseActNum = 1;
 void render_dialog_entries(void) {
     void **dialogTable = segmented_to_virtual(seg2_dialog_table);
     struct DialogEntry *dialog = segmented_to_virtual(dialogTable[gDialogID]);
-    struct DialogBox *nextDialogBox = segmented_to_virtual((*(struct DialogBox **)segmented_to_virtual(dialog->boxes))+gDialogCurBox+1);
+    struct DialogBox *dialogBox = segmented_to_virtual((*(struct DialogBox **)segmented_to_virtual(dialog->boxes))+gDialogCurBox);
+    struct DialogBox *nextDialogBox = dialogBox + 1;
     s8 lowerBound;
     s8 optionsExist = (*(struct DialogOptions **)segmented_to_virtual(dialog->options) != NULL);
 
@@ -1356,7 +1298,7 @@ void render_dialog_entries(void) {
             || (gPlayer3Controller->buttonPressed & B_BUTTON)) {
             if (gDialogAdvanceIndex == -1) {
                 if (nextDialogBox->str == NULL) {
-                    if (optionsExist && (gCurDialogOption != -1)) {
+                    if (optionsExist && (gCurDialogOption != -1) && (gDialogOptionTimer == 0)) {
                         // follow on
                         gDialogID = ((struct DialogOption *)segmented_to_virtual((*(struct DialogOption **)segmented_to_virtual(dialog->options))+gCurDialogOption))->dialogID;
                         gDialogAdvanceIndex = 0;
@@ -1370,10 +1312,11 @@ void render_dialog_entries(void) {
                         gDialogCurBox = 0;
                         level_set_transition(0, 0);
                         //play_sound(SOUND_MENU_MESSAGE_DISAPPEAR, gDefaultSoundArgs);
-
-                        if (gDialogBoxType == DIALOG_TYPE_WHITE) {
+                        if (dialogBox->proc != -1)
+                            dialogProcTable[dialogBox->proc]();
+                    
+                        if (gDialogBoxType == DIALOG_TYPE_WHITE)
                             trigger_cutscene_dialog(2);
-                        }
 
                         gDialogResponse = gDialogLineNum;
                         return;
@@ -1381,12 +1324,11 @@ void render_dialog_entries(void) {
                 } else {
                     // Next
                     //play_sound(SOUND_MENU_MESSAGE_NEXT_PAGE, gDefaultSoundArgs);
+                    if (dialogBox->proc != -1)
+                        dialogProcTable[dialogBox->proc]();
+                    
                     gDialogCurBox += 1;
                     gDialogAdvanceIndex = 0;
-                    if (optionsExist) {
-                        gCurDialogOption = -1;
-                        gLastDialogOption = -1;
-                    }
                 }
             } else {
                 gDialogAdvanceIndex = -1;
@@ -1394,10 +1336,22 @@ void render_dialog_entries(void) {
         }
         lowerBound = 1;
     }
-
+    
     // Draw box
     gSPDisplayList(gDisplayListHead++, dl_draw_text_bg_box);
-      
+    
+    // Draw header
+    switch (dialogBox->dialogHeaderColor) {
+        case DIALOG_HEADER_ORANGE:
+            gSPDisplayList(gDisplayListHead++, dl_draw_text_bg_header_orange);
+            break;
+        case DIALOG_HEADER_BLUE:
+            gSPDisplayList(gDisplayListHead++, dl_draw_text_bg_header_blue);
+            break;
+        case DIALOG_HEADER_GREEN:
+            gSPDisplayList(gDisplayListHead++, dl_draw_text_bg_header_green);
+    }
+
     // Draw text
     handle_dialog_text_and_pages(dialog, lowerBound);
 }

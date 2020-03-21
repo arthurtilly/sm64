@@ -34,11 +34,15 @@
 extern s8 gDialogCourseActNum;
 extern s8 gHudFlash;
 
+typedef void (*DialogProc)(void);
+
 struct DialogBox
 {
-    u8 *name;
-    s32 port;
-    u8 *str;
+    /*0x00*/ u8 *name;
+    /*0x08*/ u8 *str;
+    /*0x04*/ s8 portID;
+    /*0x05*/ s8 dialogHeaderColor;
+    /*0x06*/ s16 proc;
 };
 
 struct DialogOption

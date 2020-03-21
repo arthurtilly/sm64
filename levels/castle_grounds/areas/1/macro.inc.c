@@ -3,7 +3,7 @@ const MacroObject castle_grounds_seg7_macro_objs[] = {
     MACRO_OBJECT_WITH_BEH_PARAM(/*preset*/ macro_wooden_signpost,     /*yaw*/ 262, /*pos*/  5288,   722,  -800, /*behParam*/ DIALOG_TEST),
     MACRO_OBJECT_WITH_BEH_PARAM(/*preset*/ macro_wooden_signpost,     /*yaw*/  90, /*pos*/  1740,    35,  2500, /*behParam*/ DIALOG_HIFUMI_INTRO),
     MACRO_OBJECT_WITH_BEH_PARAM(/*preset*/ macro_wooden_signpost,     /*yaw*/   0, /*pos*/ -1566,   260,  3503, /*behParam*/ DIALOG_GAME_START),
-    MACRO_OBJECT_WITH_BEH_PARAM(/*preset*/ macro_wooden_signpost,     /*yaw*/  82, /*pos*/ -4666,   260,   922, /*behParam*/ DIALOG_CHAR_OPTIONS),
+    MACRO_OBJECT_WITH_BEH_PARAM(/*preset*/ macro_wooden_signpost,     /*yaw*/  82, /*pos*/ -4666,   260,   922, /*behParam*/ DIALOG_CHANGE_MUSIC),
     MACRO_OBJECT(/*preset*/ macro_hidden_1up_in_pole,  /*yaw*/   0, /*pos*/ -6270,   975, -2145),
     MACRO_OBJECT(/*preset*/ macro_1up,                 /*yaw*/   0, /*pos*/  -440,  3180, -5000),
     MACRO_OBJECT(/*preset*/ macro_1up,                 /*yaw*/   0, /*pos*/     0,  3180, -5200),

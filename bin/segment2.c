@@ -2,6 +2,8 @@
 #include "sm64.h"
 #include "game/ingame_menu.h"
 #include "dialog_ids.h"
+#include "seq_ids.h"
+#include "dialog_procs.h"
 
 #include "make_const_nonconst.h"
 
@@ -2185,6 +2187,57 @@ const Gfx dl_draw_text_bg_box[] = {
     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
     gsSP2Triangles( 5,  8,  9, 0x0,  5,  9,  6, 0x0),
+    gsSPEndDisplayList(),
+};
+
+static const Vtx vertex_text_bg_header_orange[] = {
+    {{{     0,   65,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{   60,   65,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{   60,   80,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{     0,   80,      0}, 0, {     0,      0}, {0xFF, 0x6B, 0x00, 0xFF}}},
+    {{{   130,   65,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   115,   80,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+};
+
+const Gfx dl_draw_text_bg_header_orange[] = {
+    gsDPPipeSync(),
+    gsSPVertex(vertex_text_bg_header_orange, 6, 0),
+    gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+    gsSP2Triangles( 1,  4,  5, 0x0,  1,  5,  2, 0x0),
+    gsSPEndDisplayList(),
+};
+
+static const Vtx vertex_text_bg_header_blue[] = {
+    {{{     0,   65,      0}, 0, {     0,      0}, {0x30, 0x30, 0xFF, 0xFF}}},
+    {{{   60,   65,      0}, 0, {     0,      0}, {0x30, 0x30, 0xFF, 0xFF}}},
+    {{{   60,   80,      0}, 0, {     0,      0}, {0x30, 0x30, 0xFF, 0xFF}}},
+    {{{     0,   80,      0}, 0, {     0,      0}, {0x30, 0x30, 0xFF, 0xFF}}},
+    {{{   130,   65,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   115,   80,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+};
+
+const Gfx dl_draw_text_bg_header_blue[] = {
+    gsDPPipeSync(),
+    gsSPVertex(vertex_text_bg_header_blue, 6, 0),
+    gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+    gsSP2Triangles( 1,  4,  5, 0x0,  1,  5,  2, 0x0),
+    gsSPEndDisplayList(),
+};
+
+static const Vtx vertex_text_bg_header_green[] = {
+    {{{     0,   65,      0}, 0, {     0,      0}, {0x00, 0xFF, 0x00, 0xFF}}},
+    {{{   60,   65,      0}, 0, {     0,      0}, {0x00, 0xFF, 0x00, 0xFF}}},
+    {{{   60,   80,      0}, 0, {     0,      0}, {0x00, 0xFF, 0x00, 0xFF}}},
+    {{{     0,   80,      0}, 0, {     0,      0}, {0x00, 0xFF, 0x00, 0xFF}}},
+    {{{   130,   65,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   115,   80,      0}, 0, {     0,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+};
+
+const Gfx dl_draw_text_bg_header_green[] = {
+    gsDPPipeSync(),
+    gsSPVertex(vertex_text_bg_header_green, 6, 0),
+    gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+    gsSP2Triangles( 1,  4,  5, 0x0,  1,  5,  2, 0x0),
     gsSPEndDisplayList(),
 };
 
