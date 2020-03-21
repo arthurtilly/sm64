@@ -182,6 +182,9 @@ struct Camera *gCamera;
 s16 unusedFreeRoamWallYaw;
 s16 sAvoidYawVel;
 s16 sCameraYawAfterDoorCutscene;
+
+s16 sFirstPersonYaw;
+s16 sFirstPersonPitch;
 /**
  * The current spline that controls the camera's position during the credits.
  */
@@ -3002,6 +3005,26 @@ void update_lakitu(struct Camera *c) {
     gLakituState.defMode = c->defMode;
 }
 
+void mode_first_person_camera(struct Camera *c) {
+    c->pos[0] = gMarioStates[0].pos[0];
+    c->pos[1] = gMarioStates[0].pos[1] + 160;
+    c->pos[2] = gMarioStates[0].pos[2];
+    
+    if (gPlayer1Controller->buttonDown & U_CBUTTONS)
+        sFirstPersonPitch += 500;
+    if (gPlayer1Controller->buttonDown & D_CBUTTONS)
+        sFirstPersonPitch -= 500;
+    if (gPlayer1Controller->buttonDown & L_CBUTTONS)
+        sFirstPersonYaw += 750;
+    if (gPlayer1Controller->buttonDown & R_CBUTTONS)
+        sFirstPersonYaw -= 750;
+    
+    if (sFirstPersonPitch > 0x3000) sFirstPersonPitch = 0x3000;
+    if (sFirstPersonPitch < -0x2000) sFirstPersonPitch = -0x2000;
+    
+    c->yaw = sFirstPersonYaw + 0x8000;
+    vec3f_set_dist_and_angle(c->pos, c->focus, 20000.f, sFirstPersonPitch, sFirstPersonYaw);
+}
 
 /**
  * The main camera update function.
@@ -3075,7 +3098,9 @@ void update_camera(struct Camera *c) {
     if (c->cutscene == 0) {
         sYawSpeed = 0x400;
 
-        if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
+        if (gCurrLevelNum == LEVEL_CASTLE) {
+            mode_first_person_camera(c);
+        } else if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
             switch (c->mode) {
                 case CAMERA_MODE_BEHIND_MARIO:
                     mode_behind_mario_camera(c);
@@ -3217,6 +3242,8 @@ void reset_camera(struct Camera *c) {
     sCutsceneShot = 0;
     gCutsceneObjSpawn = 0;
     gObjCutsceneDone = FALSE;
+    sFirstPersonYaw = 0;
+    sFirstPersonPitch = 0;
     gCutsceneFocus = NULL;
     unused8032CFC8 = 0;
     unused8032CFCC = 0;
@@ -3286,6 +3313,8 @@ void init_camera(struct Camera *c) {
     gPrevLevel = gCurrLevelArea / 16;
     gCurrLevelArea = gCurrLevelNum * 16 + gCurrentArea->index;
     sSelectionFlags &= CAM_MODE_MARIO_SELECTED;
+    sFirstPersonYaw = 0;
+    sFirstPersonPitch = 0;
     sFramesPaused = 0;
     gLakituState.mode = c->mode;
     gLakituState.defMode = c->defMode;

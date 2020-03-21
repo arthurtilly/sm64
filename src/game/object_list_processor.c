@@ -270,6 +270,9 @@ void bhv_mario_update(void) {
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
+    
+    if (gCurrLevelNum == LEVEL_CASTLE)
+        gCurrentObject->header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
 
     // Mario code updates MarioState's versions of position etc, so we need
     // to sync it with the mario object
