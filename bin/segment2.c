@@ -9,6 +9,77 @@
 
 // SM64 (US/JP/EU) Segment 02
 
+
+const u8 *port_janai[8];
+
+ALIGNED8 const u8 port_kyoko_1[] = {
+#include "textures/segment2/kyoko1.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 port_kyoko_2[] = {
+#include "textures/segment2/kyoko2.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 port_kyoko_3[] = {
+#include "textures/segment2/kyoko3.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 port_kyoko_4[] = {
+#include "textures/segment2/kyoko4.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 port_kyoko_5[] = {
+#include "textures/segment2/kyoko5.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 port_kyoko_6[] = {
+#include "textures/segment2/kyoko6.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 port_kyoko_7[] = {
+#include "textures/segment2/kyoko7.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 port_kyoko_8[] = {
+#include "textures/segment2/kyoko8.rgba16.inc.c"
+};
+
+static const Vtx vertex_port_chunk[] = {
+    {{{    0,    0,    0}, 0, {     0,      1024}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   64,    0,    0}, 0, {     2048,      1024}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{   64,   32,    0}, 0, {     2048,      0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+    {{{    0,   32,    0}, 0, {     0,    0}, {0xFF, 0xFF, 0xFF, 0xFF}}},
+};
+
+const Gfx dl_port_draw_chunk[] = {
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_NOMIRROR | G_TX_CLAMP, 0, G_TX_NOLOD, G_TX_CLAMP | G_TX_NOMIRROR, 0, G_TX_NOLOD),
+    gsDPLoadSync(),
+    gsDPLoadBlock(G_TX_LOADTILE, 0, 0, (32 * 64) - 1, CALC_DXT(64, G_IM_SIZ_16b_BYTES)),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 16, 0, G_TX_RENDERTILE, 0, G_TX_NOMIRROR | G_TX_CLAMP, 5, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_CLAMP, 6, G_TX_NOLOD),
+    gsDPSetTileSize(0,0,0,(64 - 1) << G_TEXTURE_IMAGE_FRAC,(32 - 1) << G_TEXTURE_IMAGE_FRAC),
+    gsSPVertex(vertex_port_chunk, 4, 0),
+    gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+};
+
+const Gfx dl_port_begin[] = {
+    gsDPPipeSync(),
+    gsSPSetGeometryMode(0),
+    gsDPTileSync(),
+    gsDPLoadSync(),
+    gsDPSetRenderMode(G_RM_AA_ZB_TEX_EDGE, G_RM_AA_ZB_TEX_EDGE2),
+    gsDPSetTextureFilter(G_TF_POINT),
+    gsDPSetCombineMode(G_CC_DECALFADEA, G_CC_DECALFADEA),
+    gsSPEndDisplayList(),
+};
+
+const Gfx dl_port_end[] = {
+    gsDPSetTextureFilter(G_TF_AVERAGE),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
+    gsSPClearGeometryMode(G_TEXTURE_GEN),
+    gsSPEndDisplayList(),
+};
+
 ALIGNED8 static const u8 texture_hud_char_0[] = {
 #include "textures/segment2/segment2.00000.rgba16.inc.c"
 };

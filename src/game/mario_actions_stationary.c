@@ -100,6 +100,8 @@ s32 check_common_hold_idle_cancels(struct MarioState *m) {
     return 0;
 }
 
+extern s16 sFirstPersonYaw;
+
 s32 act_idle(struct MarioState *m) {
     if (m->quicksandDepth > 30.0f) {
         return set_mario_action(m, ACT_IN_QUICKSAND, 0);
@@ -164,6 +166,10 @@ s32 act_idle(struct MarioState *m) {
                 }
             }
         }
+    }
+    
+    if (gCurrLevelNum == LEVEL_CASTLE) {
+        m->faceAngle[1] = sFirstPersonYaw;
     }
 
     stationary_ground_step(m);

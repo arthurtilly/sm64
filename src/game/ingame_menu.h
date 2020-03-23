@@ -40,7 +40,7 @@ struct DialogBox
 {
     /*0x00*/ u8 *name;
     /*0x08*/ u8 *str;
-    /*0x04*/ s8 portID;
+    /*0x04*/ u8 portID;
     /*0x05*/ s8 dialogHeaderColor;
     /*0x06*/ s16 proc;
 };

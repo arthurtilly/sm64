@@ -1000,6 +1000,34 @@ void render_dialog_options(struct DialogOption **options) {
     gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
 }
 
+const u8 *sPortraitTable[] = {
+    NULL,
+    port_kyoko_1,
+};
+
+void draw_portrait(u8 portID) {
+    s32 i;
+    u8 **port = segmented_to_virtual(sPortraitTable[portID]);
+    create_dl_translation_matrix(MENU_MTX_PUSH, 96, 170, 0);
+    
+    gSPDisplayList(gDisplayListHead++, dl_port_begin);
+    
+    for (i = 0; i < 8; i++) {
+        gSPTexture(gDisplayListHead++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+        gDPSetTextureImage(gDisplayListHead++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, segmented_to_virtual(port+i*0x400));
+        gSPDisplayList(gDisplayListHead++, dl_port_draw_chunk);
+        
+        if (i%2 == 0)
+            create_dl_translation_matrix(MENU_MTX_NOPUSH, 64, 0, 0);
+        else
+            create_dl_translation_matrix(MENU_MTX_NOPUSH, -64, -32, 0);
+    }
+    
+    gSPDisplayList(gDisplayListHead++, dl_port_end);
+    
+    gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
+}
+
 u32 scan_ahead_for_newline(u8 *str, u16 strIdx, u16 totalXOffset) {
     u8 strChar;
     s16 xOffset = 0;
@@ -1336,7 +1364,9 @@ void render_dialog_entries(void) {
         }
         lowerBound = 1;
     }
-    
+    // Draw portrait
+    if (dialogBox->portID != 0)
+        draw_portrait(dialogBox->portID - 1);
     // Draw box
     gSPDisplayList(gDisplayListHead++, dl_draw_text_bg_box);
     

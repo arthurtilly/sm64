@@ -12,6 +12,7 @@
 #include "save_file.h"
 #include "audio/external.h"
 #include "engine/graph_node.h"
+#include "object_helpers.h"
 
 void play_flip_sounds(struct MarioState *m, s16 frame1, s16 frame2, s16 frame3) {
     s32 animFrame = m->marioObj->header.gfx.unk38.animFrame;
@@ -565,6 +566,8 @@ s32 act_hold_freefall(struct MarioState *m) {
     return FALSE;
 }
 
+extern s16 sFirstPersonYaw;
+
 s32 act_side_flip(struct MarioState *m) {
     if (m->input & INPUT_B_PRESSED) {
         return set_mario_action(m, ACT_DIVE, 0);
@@ -596,7 +599,12 @@ s32 act_wall_kick_air(struct MarioState *m) {
     if (m->input & INPUT_Z_PRESSED) {
         return set_mario_action(m, ACT_GROUND_POUND, 0);
     }
+    
+    if (m->actionTimer < 10) {
+        sFirstPersonYaw = approach_s16_symmetric(sFirstPersonYaw, m->faceAngle[1], 0x1000);
+    }
 
+    m->actionTimer++;
     play_mario_jump_sound(m);
     common_air_action_step(m, ACT_JUMP_LAND, MARIO_ANIM_SLIDEJUMP, AIR_STEP_CHECK_LEDGE_GRAB);
     return FALSE;

@@ -6,6 +6,11 @@
 extern u8 _segment2_mio0SegmentRomStart[];
 extern u8 _segment2_mio0SegmentRomEnd[];
 
+extern const u8 port_kyoko_1[];
+
+extern Gfx dl_port_draw_chunk[];
+extern Gfx dl_port_begin[];
+extern Gfx dl_port_end[];
 extern u8 seg2_course_name_table[];
 extern u8 seg2_act_name_table[];
 extern Gfx dl_rgba16_text_begin[];
