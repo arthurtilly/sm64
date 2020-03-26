@@ -168,11 +168,9 @@
     CMD_BBH(0x22, 0x08, model), \
     CMD_PTR(geo)
 
-// unk8 is float, but doesn't really matter since CMD23 is unused
-#define CMD23(model, unk4, unk8) \
-    CMD_BBH(0x22, 0x08, model), \
-    CMD_PTR(unk4), \
-    CMD_W(unk8)
+#define JUMP_LINK_ON_PROGRESSION(progression, target) \
+    CMD_BBH(0x23, 0x08, progression), \
+    CMD_PTR(target) \
 
 #define OBJECT_WITH_ACTS(model, posX, posY, posZ, angleX, angleY, angleZ, behParam, beh, acts) \
     CMD_BBBB(0x24, 0x18, acts, model), \

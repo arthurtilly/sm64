@@ -18,11 +18,11 @@ struct SaveBlockSignature
 struct SaveFile
 {
     // Location of lost cap.
-    // Note: the coordinates get set, but are never actually used, since the
-    // cap can always be found in a fixed spot within the course
     u8 capLevel;
     u8 capArea;
-    Vec3s capPos;
+    
+    u16 progression;
+    u8 pad[4];
 
     u32 flags;
 
@@ -105,6 +105,22 @@ extern s8 gLevelToCourseNumTable[];
 #define SAVE_FLAG_CAP_ON_MR_BLIZZARD     /* 0x080000 */ (1 << 19)
 #define SAVE_FLAG_UNLOCKED_50_STAR_DOOR  /* 0x100000 */ (1 << 20)
 
+#define PROLOGUE  0
+#define CHAPTER_1 1
+#define CHAPTER_2 2
+#define CHAPTER_3 3
+#define CHAPTER_4 4
+#define CHAPTER_5 5
+#define CHAPTER_6 6
+#define EPILOGUE  7
+
+#define PROGRESSION_1 (PROLOGUE << 8)  + 0
+#define PROGRESSION_2 (PROLOGUE << 8)  + 1
+#define PROGRESSION_3 (PROLOGUE << 8)  + 2
+#define PROGRESSION_4 (CHAPTER_1 << 8) + 0
+#define PROGRESSION_5 (CHAPTER_1 << 8) + 1
+#define PROGRESSION_6 (CHAPTER_1 << 8) + 2
+
 // Variable for setting a warp checkpoint.
 
 // possibly a WarpDest struct where arg is a union. TODO: Check?
@@ -139,12 +155,12 @@ void save_file_set_star_flags(s32 fileIndex, s32 courseIndex, u32 starFlags);
 s32 save_file_get_course_coin_score(s32 fileIndex, s32 courseIndex);
 s32 save_file_is_cannon_unlocked(void);
 void save_file_set_cannon_unlocked(void);
-void save_file_set_cap_pos(s16 x, s16 y, s16 z);
-s32 save_file_get_cap_pos(Vec3s capPos);
 void save_file_set_sound_mode(u16 mode);
 u16 save_file_get_sound_mode(void);
 void save_file_move_cap_to_default_location(void);
-
+u16 save_file_get_progression(void);
+u8 save_file_get_chapter(void);
+void save_file_set_progression(u16 progression);
 void disable_warp_checkpoint(void);
 void check_if_should_set_warp_checkpoint(struct WarpNode *a);
 s32 check_warp_checkpoint(struct WarpNode *a);

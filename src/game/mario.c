@@ -1765,7 +1765,6 @@ s32 execute_mario_action(UNUSED struct Object *o) {
  **************************************************/
 
 void init_mario(void) {
-    Vec3s capPos;
     struct Object *capObject;
 
     unused80339F10 = 0;
@@ -1833,18 +1832,6 @@ void init_mario(void) {
 
     vec3f_copy(gMarioState->marioObj->header.gfx.pos, gMarioState->pos);
     vec3s_set(gMarioState->marioObj->header.gfx.angle, 0, gMarioState->faceAngle[1], 0);
-
-    if (save_file_get_cap_pos(capPos)) {
-        capObject = spawn_object(gMarioState->marioObj, MODEL_MARIOS_CAP, bhvNormalCap);
-
-        capObject->oPosX = capPos[0];
-        capObject->oPosY = capPos[1];
-        capObject->oPosZ = capPos[2];
-
-        capObject->oForwardVelS32 = 0;
-
-        capObject->oMoveAngleYaw = 0;
-    }
 }
 
 void init_mario_from_save_file(void) {

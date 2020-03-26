@@ -7,6 +7,7 @@
 #include "level_commands.h"
 
 #include "game/level_update.h"
+#include "game/save_file.h"
 
 #include "levels/scripts.h"
 
@@ -121,7 +122,7 @@ const LevelScript level_castle_grounds_entry[] = {
         WARP_NODE(/*id*/ 0xF1, /*destLevel*/ LEVEL_CASTLE_GROUNDS, /*destArea*/ 0x01, /*destNode*/ 0x03, /*flags*/ WARP_NO_CHECKPOINT),
         JUMP_LINK(script_func_local_1),
         JUMP_LINK(script_func_local_2),
-        JUMP_LINK(script_func_local_3),
+        JUMP_LINK_ON_PROGRESSION(PROGRESSION_4, script_func_local_3),
         JUMP_LINK(script_func_local_4),
         TERRAIN(/*terrainData*/ castle_grounds_seg7_collision_level),
         MACRO_OBJECTS(/*objList*/ castle_grounds_seg7_macro_objs),

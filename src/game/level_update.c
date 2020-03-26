@@ -1184,12 +1184,7 @@ s32 init_level(void) {
                 set_mario_action(gMarioState, ACT_IDLE, 0);
             } else if (gDebugLevelSelect == 0) {
                 if (gMarioState->action != ACT_UNINITIALIZED) {
-                    if (save_file_exists(gCurrSaveFileNum - 1)) {
-                        set_mario_action(gMarioState, ACT_IDLE, 0);
-                    } else {
-                        set_mario_action(gMarioState, ACT_INTRO_CUTSCENE, 0);
-                        val4 = 1;
-                    }
+                    set_mario_action(gMarioState, ACT_IDLE, 0);
                 }
             }
         }
@@ -1251,7 +1246,7 @@ s32 lvl_init_from_save_file(UNUSED s16 arg0, s32 levelNum) {
 #endif
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
-    gShouldNotPlayCastleMusic = !save_file_exists(gCurrSaveFileNum - 1);
+    gShouldNotPlayCastleMusic = FALSE;
 
     gCurrLevelNum = levelNum;
     gCurrCourseNum = COURSE_NONE;

@@ -398,30 +398,15 @@ static void level_cmd_load_model_from_geo(void) {
     sCurrentCmd = CMD_NEXT;
 }
 
-static void level_cmd_23(void) {
-    union {
-        s32 i;
-        f32 f;
-    } arg2;
-
-    s16 model = CMD_GET(s16, 2) & 0x0FFF;
-#ifdef VERSION_EU
-    s16 arg0H = (CMD_GET(s16, 2) & 0xFFFF) >> 12;
-#else
-    s16 arg0H = CMD_GET(u16, 2) >> 12;
-#endif
-    void *arg1 = CMD_GET(void *, 4);
-    // load an f32, but using an integer load instruction for some reason (hence the union)
-    arg2.i = CMD_GET(s32, 8);
-
-    if (model < 256) {
-        // GraphNodeScale has a GraphNode at the top. This
-        // is being stored to the array, so cast the pointer.
-        gLoadedGraphNodes[model] =
-            (struct GraphNode *) init_graph_node_scale(sLevelPool, 0, arg0H, arg1, arg2.f);
+static void level_cmd_jump_link_on_progression(void) {
+    s16 requiredProg = CMD_GET(u16, 2);
+    
+    if (requiredProg == save_file_get_progression()) {
+        *sStackTop++ = (uintptr_t) NEXT_CMD;
+        sCurrentCmd = segmented_to_virtual(CMD_GET(void *, 4));
+    } else {
+        sCurrentCmd = CMD_NEXT;
     }
-
-    sCurrentCmd = CMD_NEXT;
 }
 
 static void level_cmd_init_mario(void) {
@@ -774,7 +759,7 @@ static void (*LevelScriptJumpTable[])(void) = {
     /*20*/ level_cmd_end_area,
     /*21*/ level_cmd_load_model_from_dl,
     /*22*/ level_cmd_load_model_from_geo,
-    /*23*/ level_cmd_23,
+    /*23*/ level_cmd_jump_link_on_progression,
     /*24*/ level_cmd_place_object,
     /*25*/ level_cmd_init_mario,
     /*26*/ level_cmd_create_warp_node,

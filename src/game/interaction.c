@@ -345,8 +345,6 @@ void mario_blow_off_cap(struct MarioState *m, f32 capSpeed) {
     struct Object *capObject;
 
     if (does_mario_have_hat(m)) {
-        save_file_set_cap_pos(m->pos[0], m->pos[1], m->pos[2]);
-
         m->flags &= ~(MARIO_NORMAL_CAP | MARIO_CAP_ON_HEAD);
 
         capObject = spawn_object(m->marioObj, MODEL_MARIOS_CAP, bhvNormalCap);
@@ -742,6 +740,9 @@ u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *
         && m->numCoins >= 100) {
         bhv_spawn_star_no_level_exit(6);
     }
+    
+    save_file_set_progression(PROGRESSION_4);
+    save_file_do_save(gCurrSaveFileNum - 1);
 
     return FALSE;
 }
