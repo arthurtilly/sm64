@@ -9,41 +9,6 @@
 
 // SM64 (US/JP/EU) Segment 02
 
-
-const u8 *port_janai[8];
-
-ALIGNED8 const u8 port_kyoko_1[] = {
-#include "textures/segment2/kyoko1.rgba16.inc.c"
-};
-
-ALIGNED8 static const u8 port_kyoko_2[] = {
-#include "textures/segment2/kyoko2.rgba16.inc.c"
-};
-
-ALIGNED8 static const u8 port_kyoko_3[] = {
-#include "textures/segment2/kyoko3.rgba16.inc.c"
-};
-
-ALIGNED8 static const u8 port_kyoko_4[] = {
-#include "textures/segment2/kyoko4.rgba16.inc.c"
-};
-
-ALIGNED8 static const u8 port_kyoko_5[] = {
-#include "textures/segment2/kyoko5.rgba16.inc.c"
-};
-
-ALIGNED8 static const u8 port_kyoko_6[] = {
-#include "textures/segment2/kyoko6.rgba16.inc.c"
-};
-
-ALIGNED8 static const u8 port_kyoko_7[] = {
-#include "textures/segment2/kyoko7.rgba16.inc.c"
-};
-
-ALIGNED8 static const u8 port_kyoko_8[] = {
-#include "textures/segment2/kyoko8.rgba16.inc.c"
-};
-
 static const Vtx vertex_port_chunk[] = {
     {{{    0,    0,    0}, 0, {     0,      1024}, {0xFF, 0xFF, 0xFF, 0xFF}}},
     {{{   64,    0,    0}, 0, {     2048,      1024}, {0xFF, 0xFF, 0xFF, 0xFF}}},

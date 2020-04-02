@@ -143,7 +143,7 @@ ACTOR_DIR := actors
 LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 
 # Directories containing source files
-SRC_DIRS := src src/engine src/game src/audio src/menu src/buffers actors levels bin data assets
+SRC_DIRS := src src/engine src/game src/audio src/menu src/buffers actors levels bin data assets bin/portraits
 ASM_DIRS := asm lib
 BIN_DIRS := bin bin/$(VERSION)
 
@@ -221,7 +221,7 @@ GLOBAL_ASM_O_FILES = $(foreach file,$(GLOBAL_ASM_C_FILES),$(BUILD_DIR)/$(file:.c
 GLOBAL_ASM_DEP = $(BUILD_DIR)/src/audio/non_matching_dep
 
 # Segment elf files
-SEG_FILES := $(SEGMENT_ELF_FILES) $(ACTOR_ELF_FILES) $(LEVEL_ELF_FILES)
+SEG_FILES := $(SEGMENT_ELF_FILES) $(ACTOR_ELF_FILES) $(LEVEL_ELF_FILES) $(PORTRAIT_ELF_FILES)
 
 ##################### Compiler Options #######################
 IRIX_ROOT := tools/ido5.3_compiler
@@ -491,6 +491,7 @@ $(BUILD_DIR)/assets/demo_data.c: assets/demo_data.json $(wildcard assets/demos/*
 $(BUILD_DIR)/levels/%/leveldata.o: OPT_FLAGS := -g
 $(BUILD_DIR)/actors/%.o: OPT_FLAGS := -g
 $(BUILD_DIR)/bin/%.o: OPT_FLAGS := -g
+$(BUILD_DIR)/bin/portraits/%.o: OPT_FLAGS := -g
 $(BUILD_DIR)/src/goddard/%.o: OPT_FLAGS := -g
 $(BUILD_DIR)/src/goddard/%.o: MIPSISET := -mips1
 $(BUILD_DIR)/src/audio/%.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0

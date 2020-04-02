@@ -37,6 +37,14 @@ OUTPUT_ARCH (mips)
    } \
    END_SEG(name##_mio0)
 
+#define PORTRAIT(name) \
+   BEGIN_SEG(name##_port_seg_11, 0x11000000) \
+   { \
+      BUILD_DIR/bin/portraits/name.o(.data); \
+      . = ALIGN(0x10); \
+   } \
+   END_SEG(name##_port_seg_11)
+
 #define STANDARD_LEVEL(name) \
    BEGIN_SEG(name##_segment_7, 0x07000000) \
    { \
@@ -777,6 +785,8 @@ SECTIONS
    STANDARD_OBJECTS(common0, 0x08000000, 0x0F000000)
    STANDARD_OBJECTS(common1, 0x03000000, 0x16000000)
 
+   
+   
    /* use segmented addressing for behaviors */
    BEGIN_SEG(behavior, 0x13000000)
    {
@@ -940,6 +950,8 @@ SECTIONS
       BUILD_DIR/libgoddard.a:*.o(.rodata);
    }
    END_SEG(gd_dynlists)
+   
+   PORTRAIT(kyoko_neutral)
 
    gMainLevels = __romPos;
 
@@ -996,6 +1008,7 @@ SECTIONS
 #undef STUB_LEVEL
 #undef DEFINE_LEVEL
 
+   
    /* 4E9FA0-? [?] */
    BEGIN_SEG(assets, __romPos)
    {
