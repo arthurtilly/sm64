@@ -1,7 +1,4 @@
-// Parameters: dialog enum ID, (unused), lines per box, left offset, width
-// temporary
-
-#define END_DIALOG {NULL, NULL, 0, -1, -1}
+#define END_DIALOG {NULL, NULL, PORT_NONE, -1, -1}
 
 u8 name_unknown[] = { _("???") };
 u8 name_monobup[] = { _("Monobup") };
@@ -24,11 +21,11 @@ u8 name_janai[] =   { _("Janai Raibu") };
 u8 name_romuko[] =  { _("Romuko Gasahiro") };
 
 u8 dialog_test_monobup_1[] = { _("Pupupupuh...")};
-u8 dialog_test_janai_1[] = { _("You absolute moron, you idiot, you fucking baboon./nFuck you")};
+u8 dialog_test_kyoko_1[] = { _("You absolute moron, you idiot, you fucking baboon./nFuck you")};
 
 struct DialogBox dialog_test[] = {
-    {name_monobup, dialog_test_monobup_1, 0, DIALOG_HEADER_ORANGE, -1},
-    {name_kyoko, dialog_test_janai_1, 2, DIALOG_HEADER_ORANGE, -1},
+    {name_monobup, dialog_test_monobup_1, PORT_NONE, DIALOG_HEADER_ORANGE, -1},
+    {name_kyoko, dialog_test_kyoko_1, PORT_KYOKO_NEUTRAL, DIALOG_HEADER_ORANGE, -1},
     END_DIALOG,
 };
 
@@ -36,8 +33,8 @@ u8 dialog_hifumi_intro_1[] = { _("Hey, you're Mario, right? I've heard so, so, s
 u8 dialog_hifumi_intro_2[] = { _("Ohhh, this is so exciting!! I'm /cyHifumi Bullyada/cw by the way. It's so exciting to meet you!!") };
 
 struct DialogBox dialog_hifumi_intro[] = {
-    {name_hifumi, dialog_hifumi_intro_1, 0, DIALOG_HEADER_ORANGE, -1},
-    {name_hifumi, dialog_hifumi_intro_2, 0, DIALOG_HEADER_ORANGE, -1},
+    {name_hifumi, dialog_hifumi_intro_1, PORT_NONE, DIALOG_HEADER_ORANGE, -1},
+    {name_hifumi, dialog_hifumi_intro_2, PORT_NONE, DIALOG_HEADER_ORANGE, -1},
     END_DIALOG,
 };
 
@@ -49,12 +46,12 @@ u8 dialog_game_start_5[] = { _("/cgNow I fell... asleep?") };
 u8 dialog_game_start_6[] = { _("/cgAll there is here is this void and that door up there...") };
 
 struct DialogBox dialog_game_start[] = {
-    {name_mario, dialog_game_start_1, 0, DIALOG_HEADER_ORANGE, -1},
-    {name_mario, dialog_game_start_2, 0, DIALOG_HEADER_GREEN, -1},
-    {name_mario, dialog_game_start_3, 0, DIALOG_HEADER_BLUE, -1},
-    {name_mario, dialog_game_start_4, 0, DIALOG_HEADER_BLUE, -1},
-    {name_mario, dialog_game_start_5, 0, DIALOG_HEADER_GREEN, -1},
-    {name_mario, dialog_game_start_6, 0, DIALOG_HEADER_ORANGE, DIALOG_PROC_PLAY_MUSIC_BBH},
+    {name_mario, dialog_game_start_1, PORT_NONE, DIALOG_HEADER_ORANGE, -1},
+    {name_mario, dialog_game_start_2, PORT_NONE, DIALOG_HEADER_GREEN, -1},
+    {name_mario, dialog_game_start_3, PORT_NONE, DIALOG_HEADER_BLUE, -1},
+    {name_mario, dialog_game_start_4, PORT_NONE, DIALOG_HEADER_BLUE, -1},
+    {name_mario, dialog_game_start_5, PORT_NONE, DIALOG_HEADER_GREEN, -1},
+    {name_mario, dialog_game_start_6, PORT_NONE, DIALOG_HEADER_ORANGE, DIALOG_PROC_PLAY_MUSIC_BBH},
     END_DIALOG,
 };
 
@@ -67,7 +64,7 @@ u8 option_music_file_select[] = { _("File Select") };
 u8 option_music_ddd[] = { _("Dire, Dire Docks") };
 
 struct DialogBox dialog_change_music[] = {
-    {name_jukebox, dialog_change_music_1, 0, DIALOG_HEADER_GREEN, -1},
+    {name_jukebox, dialog_change_music_1, PORT_NONE, DIALOG_HEADER_GREEN, -1},
     END_DIALOG,
 };
 
@@ -85,21 +82,21 @@ u8 dialog_change_music_file_select_1[] = { _("Playing File Select...") };
 u8 dialog_change_music_ddd_1[] = { _("Playing Dire, Dire Docks...") };
 
 struct DialogBox dialog_change_music_bbh[] = {
-    {name_jukebox, dialog_change_music_bbh_1, 0, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_BBH},
+    {name_jukebox, dialog_change_music_bbh_1, PORT_NONE, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_BBH},
     END_DIALOG,
 };
 
 struct DialogBox dialog_change_music_koopa_final[] = {
-    {name_jukebox, dialog_change_music_koopa_final_1, 0, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_SLIDE},
+    {name_jukebox, dialog_change_music_koopa_final_1, PORT_NONE, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_SLIDE},
     END_DIALOG,
 };
 
 struct DialogBox dialog_change_music_file_select[] = {
-    {name_jukebox, dialog_change_music_file_select_1, 0, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_FILE_SELECT},
+    {name_jukebox, dialog_change_music_file_select_1, PORT_NONE, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_FILE_SELECT},
     END_DIALOG,
 };
 
 struct DialogBox dialog_change_music_ddd[] = {
-    {name_jukebox, dialog_change_music_ddd_1, 0, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_DDD},
+    {name_jukebox, dialog_change_music_ddd_1, PORT_NONE, DIALOG_HEADER_GREEN, DIALOG_PROC_PLAY_MUSIC_DDD},
     END_DIALOG,
 };

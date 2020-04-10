@@ -7,6 +7,7 @@ enum DialogHeaderColors {
     DIALOG_HEADER_GREEN
 };
 
+// MUST MATCH WITH dialogs.h
 enum DialogId {
     DIALOG_TEST,
     DIALOG_HIFUMI_INTRO,
@@ -17,6 +18,13 @@ enum DialogId {
     DIALOG_CHANGE_MUSIC_FILE_SELECT,
     DIALOG_CHANGE_MUSIC_DDD,
     DIALOG_COUNT
+};
+
+// MUST MATCH WITH sPortraitTable IN ingame_menu.c (except for PORT_NONE)
+enum DialogPortraits {
+    PORT_NONE,
+    PORT_JANAI_NEUTRAL,
+    PORT_KYOKO_NEUTRAL
 };
 
 #endif

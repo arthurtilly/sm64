@@ -38,12 +38,12 @@ OUTPUT_ARCH (mips)
    END_SEG(name##_mio0)
 
 #define PORTRAIT(name) \
-   BEGIN_SEG(name##_port_seg_11, 0x11000000) \
+   BEGIN_SEG(name##_port_seg_12, 0x12000000) \
    { \
       BUILD_DIR/bin/portraits/name.o(.data); \
       . = ALIGN(0x10); \
    } \
-   END_SEG(name##_port_seg_11)
+   END_SEG(name##_port_seg_12)
 
 #define STANDARD_LEVEL(name) \
    BEGIN_SEG(name##_segment_7, 0x07000000) \

@@ -59,6 +59,19 @@ enum DialogBoxType {
 
 enum DialogMark { DIALOG_MARK_NONE = 0, DIALOG_MARK_DAKUTEN = 1, DIALOG_MARK_HANDAKUTEN = 2 };
 
+
+
+extern u8 _kyoko_neutral_port_seg_12SegmentRomStart[];
+
+// MUST MATCH WITH ENUM IN dialog_ids.h
+const u8 *sPortraitTable[] = {
+    NULL, // janai
+    _kyoko_neutral_port_seg_12SegmentRomStart,
+};
+
+
+
+
 #define DEFAULT_DIALOG_BOX_ANGLE 90.0f
 #define DEFAULT_DIALOG_BOX_SCALE 19.0f
 
@@ -1000,14 +1013,10 @@ void render_dialog_options(struct DialogOption **options) {
     gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
 }
 
-const u8 *sPortraitTable[] = {
-    NULL,
-    port_kyoko_1,
-};
-
 void draw_portrait(u8 portID) {
     s32 i;
-    u8 **port = segmented_to_virtual(sPortraitTable[portID]);
+    u8 **port = segmented_to_virtual((void *)0x12000000);
+
     create_dl_translation_matrix(MENU_MTX_PUSH, 96, 170, 0);
     
     gSPDisplayList(gDisplayListHead++, dl_port_begin);

@@ -269,6 +269,10 @@ void init_controllers(void) {
     }
 }
 
+void *gPortraitMemoryAddr;
+
+extern u8 _kyoko_neutral_port_seg_12SegmentRomStart[];
+
 void setup_game_memory(void) {
     UNUSED u8 pad[8];
 
@@ -287,6 +291,10 @@ void setup_game_memory(void) {
     func_80278A78(&gDemo, gDemoInputs, D_80339CF4);
     load_segment(0x10, _entrySegmentRomStart, _entrySegmentRomEnd, MEMORY_POOL_LEFT);
     load_segment_decompress(2, _segment2_mio0SegmentRomStart, _segment2_mio0SegmentRomEnd);
+    
+    gPortraitMemoryAddr = main_pool_alloc(0x8000, MEMORY_POOL_LEFT);
+    set_segment_base_addr(18, gPortraitMemoryAddr);
+    dma_read(gPortraitMemoryAddr, _kyoko_neutral_port_seg_12SegmentRomStart, _kyoko_neutral_port_seg_12SegmentRomStart+0x8000);
 }
 
 // main game loop thread. runs forever as long as the game

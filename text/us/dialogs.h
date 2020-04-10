@@ -1,6 +1,7 @@
-// Parameters: dialog enum ID, (unused), lines per box, left offset, width
+// Parameters: dialog enum ID, string, options
 
 
+// MUST MATCH WITH ENUM IN dialog_ids.h
 DEFINE_DIALOG(DIALOG_TEST, dialog_test, NULL)
 DEFINE_DIALOG(DIALOG_HIFUMI_INTRO, dialog_hifumi_intro, NULL)
 DEFINE_DIALOG(DIALOG_GAME_START, dialog_game_start, NULL)
