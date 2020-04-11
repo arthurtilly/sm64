@@ -20,11 +20,11 @@ u8 name_yasai[] =   { _("Yasai Nofu") };
 u8 name_janai[] =   { _("Janai Raibu") };
 u8 name_romuko[] =  { _("Romuko Gasahiro") };
 
-u8 dialog_test_monobup_1[] = { _("Pupupupuh...")};
-u8 dialog_test_kyoko_1[] = { _("You absolute moron, you idiot, you fucking baboon./nFuck you")};
+u8 dialog_test_janai_1[] = { _("This is definitely a gamer moment.")};
+u8 dialog_test_kyoko_1[] = { _("Shut the fuck up you stupid edgy piece of shit")};
 
 struct DialogBox dialog_test[] = {
-    {name_monobup, dialog_test_monobup_1, PORT_NONE, DIALOG_HEADER_ORANGE, -1},
+    {name_janai, dialog_test_janai_1, PORT_JANAI_NEUTRAL, DIALOG_HEADER_ORANGE, -1},
     {name_kyoko, dialog_test_kyoko_1, PORT_KYOKO_NEUTRAL, DIALOG_HEADER_ORANGE, -1},
     END_DIALOG,
 };

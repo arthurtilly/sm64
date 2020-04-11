@@ -3,6 +3,7 @@
 # --------------------------------------
 
 PORTRAITS := \
+    janai_neutral \
     kyoko_neutral
 
 # obtain a list of segments from the *.c files in bin directory
@@ -193,9 +194,10 @@ SKY_FILES                    := $(patsubst %.png,%.inc.c,$(wildcard $(TEXTURE_DI
 MACHINE_FILES                := $(patsubst %.png,%.inc.c,$(wildcard $(TEXTURE_DIR)/machine/*.png))
 MOUNTAIN_FILES               := $(patsubst %.png,%.inc.c,$(wildcard $(TEXTURE_DIR)/mountain/*.png))
 GRASS_FILES                  := $(patsubst %.png,%.inc.c,$(wildcard $(TEXTURE_DIR)/grass/*.png))
-PORTRAIT_FILES               := $(patsubst %.png,%.inc.c,$(wildcard $(TEXTURE_DIR)/portraits/kyoko_neutral/*.png))
 
-# PORTRAIT_FILES               := $(foreach dir,$(addprefix $(TEXTURE_DIR)/,$(PORTRAITS)),$(patsubst %.png,%.inc.c,$(wildcard $(dir)/*.png)))
+# Portrait Textures
+PORTRAIT_FILES               := $(foreach dir,$(addprefix $(TEXTURE_DIR)/portraits/,$(PORTRAITS)),$(patsubst %.png,%.inc.c,$(wildcard $(dir)/*.png)))
+
 
 # Texture Files
 $(BUILD_DIR)/bin/segment2.o: $(addprefix $(BUILD_DIR)/,$(SEGMENT2_FILES))
@@ -213,7 +215,10 @@ $(BUILD_DIR)/bin/sky.o: $(addprefix $(BUILD_DIR)/,$(SKY_FILES))
 $(BUILD_DIR)/bin/machine.o: $(addprefix $(BUILD_DIR)/,$(MACHINE_FILES))
 $(BUILD_DIR)/bin/mountain.o: $(addprefix $(BUILD_DIR)/,$(MOUNTAIN_FILES))
 $(BUILD_DIR)/bin/grass.o: $(addprefix $(BUILD_DIR)/,$(GRASS_FILES))
-$(BUILD_DIR)/bin/portraits/kyoko_neutral.o: $(addprefix $(BUILD_DIR)/,$(PORTRAIT_FILES))
+
+# Portrait Files
+$(foreach file,$(addprefix $(BUILD_DIR)/bin/portraits/,$(addsuffix .o,$(PORTRAITS))),$(file)): $(addprefix $(BUILD_DIR)/,$(PORTRAIT_FILES)) \
+
 
 # Others
 $(BUILD_DIR)/bin/segment2.elf: SEGMENT_ADDRESS := 0x02000000
@@ -232,7 +237,6 @@ $(BUILD_DIR)/bin/sky.elf: SEGMENT_ADDRESS := 0x09000000
 $(BUILD_DIR)/bin/machine.elf: SEGMENT_ADDRESS := 0x09000000
 $(BUILD_DIR)/bin/mountain.elf: SEGMENT_ADDRESS := 0x09000000
 $(BUILD_DIR)/bin/grass.elf: SEGMENT_ADDRESS := 0x09000000
-$(BUILD_DIR)/bin/portraits/kyoko_neutral.elf: SEGMENT_ADDRESS := 0x11000000
 
 # EU segment 19 translations
 $(BUILD_DIR)/bin/eu/translation_de.elf: SEGMENT_ADDRESS := 0x19000000

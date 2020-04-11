@@ -38,12 +38,13 @@ OUTPUT_ARCH (mips)
    END_SEG(name##_mio0)
 
 #define PORTRAIT(name) \
-   BEGIN_SEG(name##_port_seg_12, 0x12000000) \
+   _##name##RomStart = __romPos; \
+   .name SEG_MAIN : AT(__romPos) \
    { \
       BUILD_DIR/bin/portraits/name.o(.data); \
       . = ALIGN(0x10); \
    } \
-   END_SEG(name##_port_seg_12)
+   __romPos += SIZEOF(.name);
 
 #define STANDARD_LEVEL(name) \
    BEGIN_SEG(name##_segment_7, 0x07000000) \
@@ -951,6 +952,7 @@ SECTIONS
    }
    END_SEG(gd_dynlists)
    
+   PORTRAIT(janai_neutral)
    PORTRAIT(kyoko_neutral)
 
    gMainLevels = __romPos;

@@ -23,6 +23,7 @@ extern uintptr_t gPhysicalFrameBuffers[3];
 extern uintptr_t gPhysicalZBuffer;
 extern void *D_80339CF0;
 extern void *D_80339CF4;
+extern void *gPortraitMemoryAddr;
 extern struct SPTask *gGfxSPTask;
 extern Gfx *gDisplayListHead;
 extern u8 *gGfxPoolEnd;

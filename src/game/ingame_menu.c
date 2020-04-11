@@ -46,12 +46,6 @@ s8 gRedCoinsCollected;
 extern u8 gLastCompletedCourseNum;
 extern u8 gLastCompletedStarNum;
 
-enum DialogBoxPageState {
-    DIALOG_PAGE_STATE_NONE,
-    DIALOG_PAGE_STATE_SCROLL,
-    DIALOG_PAGE_STATE_END
-};
-
 enum DialogBoxType {
     DIALOG_TYPE_BLACK, // used in NPCs and level messages
     DIALOG_TYPE_WHITE    // used in signposts and wall signs and etc
@@ -59,17 +53,16 @@ enum DialogBoxType {
 
 enum DialogMark { DIALOG_MARK_NONE = 0, DIALOG_MARK_DAKUTEN = 1, DIALOG_MARK_HANDAKUTEN = 2 };
 
+u8 sCurrentPortID;
 
-
-extern u8 _kyoko_neutral_port_seg_12SegmentRomStart[];
+extern u8 _janai_neutralRomStart[];
+extern u8 _kyoko_neutralRomStart[];
 
 // MUST MATCH WITH ENUM IN dialog_ids.h
 const u8 *sPortraitTable[] = {
-    NULL, // janai
-    _kyoko_neutral_port_seg_12SegmentRomStart,
+    _janai_neutralRomStart,
+    _kyoko_neutralRomStart,
 };
-
-
 
 
 #define DEFAULT_DIALOG_BOX_ANGLE 90.0f
@@ -807,20 +800,6 @@ void reset_dialog_render_state(void) {
 #define Y_VAL3 16
 #endif
 
-void handle_dialog_scroll_page_state(s8 lineNum, s8 totalLines, s8 *pageState, s8 *xMatrix, s16 *linePos)
-{
-    gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
-
-    if (lineNum == totalLines) {
-        pageState[0] = DIALOG_PAGE_STATE_SCROLL;
-        return;
-    }
-    create_dl_translation_matrix(MENU_MTX_PUSH, X_VAL3, 2 - (lineNum * Y_VAL3), 0);
-
-    linePos[0] = 0;
-    xMatrix[0] = 1;
-}
-
 #if defined(VERSION_JP) || defined(VERSION_SH)
 void adjust_pos_and_print_period_char(s8 *xMatrix, s16 *linePos) {
     if (linePos[0] != 0) {
@@ -1013,9 +992,11 @@ void render_dialog_options(struct DialogOption **options) {
     gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
 }
 
-void draw_portrait(u8 portID) {
+extern void *gPortraitMemoryAddr;
+
+void draw_portrait(void) {
     s32 i;
-    u8 **port = segmented_to_virtual((void *)0x12000000);
+    u8 **port = gPortraitMemoryAddr;
 
     create_dl_translation_matrix(MENU_MTX_PUSH, 96, 170, 0);
     
@@ -1023,7 +1004,7 @@ void draw_portrait(u8 portID) {
     
     for (i = 0; i < 8; i++) {
         gSPTexture(gDisplayListHead++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
-        gDPSetTextureImage(gDisplayListHead++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, segmented_to_virtual(port+i*0x400));
+        gDPSetTextureImage(gDisplayListHead++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, port+i*0x400);
         gSPDisplayList(gDisplayListHead++, dl_port_draw_chunk);
         
         if (i%2 == 0)
@@ -1065,7 +1046,7 @@ void handle_dialog_text_and_pages(struct DialogEntry *dialog, s8 lowerBound)
     
     s8 lineNum = 1;
 
-    s8 pageState = DIALOG_PAGE_STATE_NONE;
+    s8 endOfLine = FALSE;
 
     s8 xMatrix = 1;
 
@@ -1096,7 +1077,7 @@ void handle_dialog_text_and_pages(struct DialogEntry *dialog, s8 lowerBound)
     gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, 255);
     create_dl_translation_matrix(MENU_MTX_PUSH, 0,  16 - lineNum * 16, 0);
 
-    while (pageState == DIALOG_PAGE_STATE_NONE) {
+    while (!endOfLine) {
         if ((strIdx > gDialogAdvanceIndex) && (gDialogAdvanceIndex != -1)) {
             gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
             break;
@@ -1110,7 +1091,7 @@ void handle_dialog_text_and_pages(struct DialogEntry *dialog, s8 lowerBound)
                 }
                 gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
                 gDialogAdvanceIndex = -1;
-                pageState = DIALOG_PAGE_STATE_SCROLL;
+                endOfLine = TRUE;
                 break;
             case DIALOG_CHAR_SPACE:
                 if (!scan_ahead_for_newline(str, strIdx, totalXOffset)) {
@@ -1374,8 +1355,16 @@ void render_dialog_entries(void) {
         lowerBound = 1;
     }
     // Draw portrait
-    if (dialogBox->portID != 0)
-        draw_portrait(dialogBox->portID - 1);
+    if (dialogBox->portID != 0) {
+        if (dialogBox->portID != sCurrentPortID) {
+            // Load portrait into RAM
+            u32 romAddr = sPortraitTable[dialogBox->portID - 1];
+            dma_read(gPortraitMemoryAddr, romAddr, romAddr + 0x8000);
+            sCurrentPortID = dialogBox->portID;
+        }
+        
+        draw_portrait();
+    }
     // Draw box
     gSPDisplayList(gDisplayListHead++, dl_draw_text_bg_box);
     
