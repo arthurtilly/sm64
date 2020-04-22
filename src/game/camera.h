@@ -178,6 +178,7 @@
 #define SHAKE_ENV_EXPLOSION           1
 #define SHAKE_ENV_BOWSER_THROW_BOUNCE 2
 #define SHAKE_ENV_BOWSER_JUMP         3
+#define SHAKE_ENV_TEXT_EFFECT         4
 #define SHAKE_ENV_UNUSED_5            5
 #define SHAKE_ENV_UNUSED_6            6
 #define SHAKE_ENV_UNUSED_7            7

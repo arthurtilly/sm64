@@ -55,11 +55,31 @@ enum DialogMark { DIALOG_MARK_NONE = 0, DIALOG_MARK_DAKUTEN = 1, DIALOG_MARK_HAN
 
 u8 sCurrentPortID;
 
+/** 
+
+HOW TO ADD NEW PORTRAITS 
+(<port_name> must be consistent throughout)
+
+1. Put the textures in '/textures/portraits/<port_name>/'.
+2. Create a .c file called '/bin/portraits/<port_name>.c' and reference the textures in it.
+3. Add a PORTRAIT(<port_name>) command to 'sm64.ld'.
+4. Add the portrait name to the list at the top of 'Makefile.split'.
+5. Add "_<port_name>RomStart" to the list below, and add the extern.
+6. Update the enum in "/include/dialog_ids.h". (order must match with list below)
+
+**/
+
+extern u8 _ai_neutralRomStart[];
+extern u8 _eiga_neutralRomStart[];
+extern u8 _akuno_angryRomStart[];
 extern u8 _janai_neutralRomStart[];
 extern u8 _kyoko_neutralRomStart[];
 
 // MUST MATCH WITH ENUM IN dialog_ids.h
 const u8 *sPortraitTable[] = {
+    _ai_neutralRomStart,
+    _eiga_neutralRomStart,
+    _akuno_angryRomStart,
     _janai_neutralRomStart,
     _kyoko_neutralRomStart,
 };
@@ -1093,18 +1113,17 @@ void handle_dialog_text_and_pages(struct DialogEntry *dialog, s8 lowerBound)
                 gDialogAdvanceIndex = -1;
                 endOfLine = TRUE;
                 break;
-            case DIALOG_CHAR_SPACE:
-                if (!scan_ahead_for_newline(str, strIdx, totalXOffset)) {
-                    xMatrix++;
-                    linePos++;
-                    break; // Otherwise, flow into next case
+            case DIALOG_CHAR_EFFECT:
+                strIdx++;
+                if ((strIdx-1) == gDialogAdvanceIndex) {
+                    gDialogAdvanceIndex++;
+                    switch(str[strIdx]) {
+                        case ASCII_TO_DIALOG('s'): // Screen shake
+                            set_environmental_camera_shake(SHAKE_ENV_TEXT_EFFECT);
+                            play_sound(SOUND_ACTION_TERRAIN_HEAVY_LANDING, gDefaultSoundArgs);
+                            break;
+                    }
                 }
-            case DIALOG_CHAR_NEWLINE:
-                lineNum++;
-                gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
-                totalXOffset = 0;
-                create_dl_translation_matrix(MENU_MTX_PUSH, 0, 16 - lineNum * 16, 0);
-                xMatrix = 1;
                 break;
             case DIALOG_CHAR_CHANGE_COLOR:
                 strIdx++;
@@ -1119,6 +1138,19 @@ void handle_dialog_text_and_pages(struct DialogEntry *dialog, s8 lowerBound)
                         gDPSetEnvColor(gDisplayListHead++, 0, 255, 0, 255);
                         break;
                 }
+                break;
+            case DIALOG_CHAR_SPACE:
+                if (!scan_ahead_for_newline(str, strIdx, totalXOffset)) {
+                    xMatrix++;
+                    linePos++;
+                    break; // Otherwise, flow into next case
+                }
+            case DIALOG_CHAR_NEWLINE:
+                lineNum++;
+                gSPPopMatrix(gDisplayListHead++, G_MTX_MODELVIEW);
+                totalXOffset = 0;
+                create_dl_translation_matrix(MENU_MTX_PUSH, 0, 16 - lineNum * 16, 0);
+                xMatrix = 1;
                 break;
             case DIALOG_CHAR_SLASH:
                 xMatrix += 2;

@@ -17,13 +17,21 @@ u8 name_okane[] =   { _("Okane Fukuro") };
 u8 name_eiga[] =    { _("Eiga Meka") };
 u8 name_akuno[] =   { _("Akuno Kaze") };
 u8 name_yasai[] =   { _("Yasai Nofu") };
-u8 name_janai[] =   { _("Janai Raibu") };
+u8 name_janai[] =   { _("Isn't live") };
 u8 name_romuko[] =  { _("Romuko Gasahiro") };
 
+u8 dialog_test_akuno_1[] = { _("Damn...")};
+u8 dialog_test_eiga_1[] = { _("What's the matter?")};
+u8 dialog_test_akuno_2[] = { _("I am so /esGODDAMN horny right now, like holy SHIT")};
+u8 dialog_test_ai_1[] = { _("I feel you, bro.")};
 u8 dialog_test_janai_1[] = { _("This is definitely a gamer moment.")};
 u8 dialog_test_kyoko_1[] = { _("Shut the fuck up you stupid edgy piece of shit")};
 
 struct DialogBox dialog_test[] = {
+    {name_akuno, dialog_test_akuno_1, PORT_AKUNO_ANGRY,   DIALOG_HEADER_ORANGE, -1},
+    {name_eiga,  dialog_test_eiga_1,  PORT_EIGA_NEUTRAL,  DIALOG_HEADER_ORANGE, -1},
+    {name_akuno, dialog_test_akuno_2, PORT_AKUNO_ANGRY,   DIALOG_HEADER_ORANGE, -1},
+    {name_ai,    dialog_test_ai_1,    PORT_AI_NEUTRAL,    DIALOG_HEADER_ORANGE, -1},
     {name_janai, dialog_test_janai_1, PORT_JANAI_NEUTRAL, DIALOG_HEADER_ORANGE, -1},
     {name_kyoko, dialog_test_kyoko_1, PORT_KYOKO_NEUTRAL, DIALOG_HEADER_ORANGE, -1},
     END_DIALOG,

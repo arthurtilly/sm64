@@ -952,6 +952,9 @@ SECTIONS
    }
    END_SEG(gd_dynlists)
    
+   PORTRAIT(ai_neutral)
+   PORTRAIT(eiga_neutral)
+   PORTRAIT(akuno_angry)
    PORTRAIT(janai_neutral)
    PORTRAIT(kyoko_neutral)
 

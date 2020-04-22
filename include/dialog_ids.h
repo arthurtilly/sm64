@@ -17,12 +17,16 @@ enum DialogId {
     DIALOG_CHANGE_MUSIC_KOOPA_FINAL,
     DIALOG_CHANGE_MUSIC_FILE_SELECT,
     DIALOG_CHANGE_MUSIC_DDD,
+    
     DIALOG_COUNT
 };
 
 // MUST MATCH WITH sPortraitTable IN ingame_menu.c (except for PORT_NONE)
 enum DialogPortraits {
     PORT_NONE,
+    PORT_AI_NEUTRAL,
+    PORT_EIGA_NEUTRAL,
+    PORT_AKUNO_ANGRY,
     PORT_JANAI_NEUTRAL,
     PORT_KYOKO_NEUTRAL
 };

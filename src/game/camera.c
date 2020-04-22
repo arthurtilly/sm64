@@ -606,6 +606,12 @@ void set_environmental_camera_shake(s16 shake) {
         case SHAKE_ENV_UNUSED_5:
             set_camera_yaw_shake(-0x200, 0x80, 0x200);
             break;
+            
+        case SHAKE_ENV_TEXT_EFFECT:
+            set_camera_yaw_shake(0x60, 0x8, 0x4000);
+            set_camera_pitch_shake(0x60, 0x8, 0x4000);
+            set_fov_shake(0x180, 0x40, 0x8000);
+            break;
     }
 }
 

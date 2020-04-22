@@ -3,6 +3,9 @@
 # --------------------------------------
 
 PORTRAITS := \
+    ai_neutral \
+    eiga_neutral \
+    akuno_angry \
     janai_neutral \
     kyoko_neutral
 
