@@ -226,12 +226,16 @@ u32 determine_interaction(struct MarioState *m, struct Object *o) {
     // that the interaction not be set prior. This specifically overrides turning a ground
     // pound into just a bounce.
     if (interaction == 0 && (action & ACT_FLAG_AIR)) {
-        if (m->vel[1] < 0.0f) {
-            if (m->pos[1] > o->oPosY) {
+        if (gGravityMode) {
+            if ((m->vel[1] > 0.0f) && ((9000.f-m->pos[1]) > o->oPosY)) {
                 interaction = INT_HIT_FROM_ABOVE;
+            } else if ((m->vel[1] < 0.0f) && ((9000.f-m->pos[1]) < o->oPosY)) {
+                interaction = INT_HIT_FROM_BELOW;
             }
         } else {
-            if (m->pos[1] < o->oPosY) {
+            if ((m->vel[1] < 0.0f) && (m->pos[1] > o->oPosY)) {
+                interaction = INT_HIT_FROM_ABOVE;
+            } else if ((m->vel[1] > 0.0f) && (m->pos[1] < o->oPosY)) {
                 interaction = INT_HIT_FROM_BELOW;
             }
         }
@@ -300,7 +304,7 @@ void mario_drop_held_object(struct MarioState *m) {
         // y-positon instead of the HOLP's y-position. This fact is often exploited when
         // cloning objects.
         m->heldObj->oPosX = m->marioBodyState->heldObjLastPosition[0];
-        m->heldObj->oPosY = m->pos[1];
+        m->heldObj->oPosY = (gGravityMode ? 8750.f - m->pos[1] : m->pos[1]);
         m->heldObj->oPosZ = m->marioBodyState->heldObjLastPosition[2];
 
         m->heldObj->oMoveAngleYaw = m->faceAngle[1];
@@ -510,7 +514,8 @@ u32 bully_knock_back_mario(struct MarioState *mario) {
 
 void bounce_off_object(struct MarioState *m, struct Object *o, f32 velY) {
     m->pos[1] = o->oPosY + o->hitboxHeight;
-    m->vel[1] = velY;
+    m->vel[1] = (gGravityMode ? -velY : velY);
+    if (gGravityMode) m->pos[1] = 9000.f - m->pos[1];
 
     m->flags &= ~MARIO_UNKNOWN_08;
 
@@ -583,7 +588,7 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
             mario_set_forward_vel(m, 28.0f);
         }
 
-        if (m->pos[1] >= m->interactObj->oPosY) {
+        if ((gGravityMode ? 9000.f-m->pos[1] : m->pos[1]) >= m->interactObj->oPosY) {
             if (m->vel[1] < 20.0f) {
                 m->vel[1] = 20.0f;
             }
@@ -1072,7 +1077,7 @@ u32 interact_tornado(struct MarioState *m, UNUSED u32 interactType, struct Objec
         m->usedObj = o;
 
         marioObj->oMarioTornadoYawVel = 0x400;
-        marioObj->oMarioTornadoPosY = m->pos[1] - o->oPosY;
+        marioObj->oMarioTornadoPosY = (gGravityMode ? 9000.f - m->pos[1] : m->pos[1]) - o->oPosY;
 
         play_sound(SOUND_MARIO_WAAAOOOW, m->marioObj->header.gfx.cameraToObject);
         return set_mario_action(m, ACT_TORNADO_TWIRLING, m->action == ACT_TWIRLING);

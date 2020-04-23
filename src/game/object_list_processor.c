@@ -275,6 +275,14 @@ void bhv_mario_update(void) {
         
         if (!(gMarioState->action & ACT_FLAG_SWIMMING)) {
             gMarioState->pos[1] = 8835.f - gMarioState->pos[1]; // Transform position. The extra 165 is due to Mario's visual model.
+            
+            if (gMarioState->action == ACT_CRAZY_BOX_BOUNCE)
+                gMarioState->pos[1] += 165.f;
+            
+            // Either increase or decrease tornado y pos by 165 depending on flip
+            if (gMarioState->action == ACT_TORNADO_TWIRLING)
+                gMarioState->marioObj->oMarioTornadoPosY += (gIsGravityFlipped * 330.f) - 165.f;
+            
             gMarioState->vel[1] = -gMarioState->vel[1]; // Flip velocity
             gMarioState->peakHeight = 9000.f - gMarioState->peakHeight; // For fall damage
         }
@@ -308,7 +316,8 @@ void bhv_mario_update(void) {
         i++;
     }
     
-    if (gGravityMode) gMarioObject->header.gfx.angle[2] += 0x8000; // Turn Mario upside down
+    if ((gGravityMode) && (gMarioState->action != ACT_CRAZY_BOX_BOUNCE))
+        gMarioObject->header.gfx.angle[2] += 0x8000; // Turn Mario upside down
     
     gGravityMode = FALSE; // Gravity must only be flipped when checking Mario's collision, not other objects.
 }

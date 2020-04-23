@@ -1045,7 +1045,7 @@ s32 act_crazy_box_bounce(struct MarioState *m) {
             break;
     }
 
-    m->marioObj->header.gfx.angle[0] = atan2s(m->forwardVel, -m->vel[1]);
+    m->marioObj->header.gfx.angle[0] = atan2s(m->forwardVel, (gGravityMode ? m->vel[1] : -m->vel[1]));
     return FALSE;
 }
 

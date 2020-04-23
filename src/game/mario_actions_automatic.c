@@ -773,16 +773,26 @@ s32 act_tornado_twirling(struct MarioState *m) {
     f32 dx = (m->pos[0] - usedObj->oPosX) * 0.95f;
     f32 dz = (m->pos[2] - usedObj->oPosZ) * 0.95f;
 
-    if (m->vel[1] < 60.0f) {
-        m->vel[1] += 1.0f;
-    }
-
-    if ((marioObj->oMarioTornadoPosY += m->vel[1]) < 0.0f) {
-        marioObj->oMarioTornadoPosY = 0.0f;
+    if (gGravityMode) {
+        if (m->vel[1] > -60.0f)
+            m->vel[1] -= 1.0f;
+        if ((marioObj->oMarioTornadoPosY -= m->vel[1]) < 0.0f)
+            marioObj->oMarioTornadoPosY = 0.0f;
+    } else {
+        if (m->vel[1] < 60.0f)
+            m->vel[1] += 1.0f;
+        if ((marioObj->oMarioTornadoPosY += m->vel[1]) < 0.0f)
+            marioObj->oMarioTornadoPosY = 0.0f;
     }
     if (marioObj->oMarioTornadoPosY > usedObj->hitboxHeight) {
-        if (m->vel[1] < 20.0f) {
-            m->vel[1] = 20.0f;
+        if (gGravityMode) {
+            if (m->vel[1] > -20.0f) {
+                m->vel[1] = -20.0f;
+            }
+        } else {
+            if (m->vel[1] < 20.0f) {
+                m->vel[1] = 20.0f;
+            }
         }
         return set_mario_action(m, ACT_TWIRLING, 1);
     }
@@ -802,7 +812,10 @@ s32 act_tornado_twirling(struct MarioState *m) {
 
     nextPos[0] = usedObj->oPosX + dx * cosAngleVel + dz * sinAngleVel;
     nextPos[2] = usedObj->oPosZ - dx * sinAngleVel + dz * cosAngleVel;
-    nextPos[1] = usedObj->oPosY + marioObj->oMarioTornadoPosY;
+    if (gGravityMode)
+        nextPos[1] = 9000.f - usedObj->oPosY - marioObj->oMarioTornadoPosY;
+    else
+        nextPos[1] = usedObj->oPosY + marioObj->oMarioTornadoPosY;
 
     f32_find_wall_collision(&nextPos[0], &nextPos[1], &nextPos[2], 60.0f, 50.0f);
 
