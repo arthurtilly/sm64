@@ -281,6 +281,8 @@ void bhv_mario_update(void) {
             else
                 gMarioState->marioObj->oMarioPolePos = gMarioState->pos[1] - gMarioState->usedObj->oPosY;
         }
+        gMarioObject->hitboxDownOffset = (gIsGravityFlipped ? 160.f : 0.f); // Adjust hitbox when upside down
+  
     }
     
     gGravityMode = gIsGravityFlipped;
