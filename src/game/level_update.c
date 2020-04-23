@@ -640,11 +640,18 @@ void initiate_warp(s16 destLevel, s16 destArea, s16 destWarpNode, s32 arg3) {
  */
 struct WarpNode *get_painting_warp_node(void) {
     struct WarpNode *warpNode = NULL;
-    s32 paintingIndex = gMarioState->floor->type - SURFACE_PAINTING_WARP_D3;
+    s32 paintingIndex = -1;
+    // Use ceiling if entering painting upside down
+    if (gIsGravityFlipped) {
+        if (gMarioState->ceil != NULL)
+            paintingIndex = gMarioState->ceil->type - SURFACE_PAINTING_WARP_D3;
+    } else
+        paintingIndex = gMarioState->floor->type - SURFACE_PAINTING_WARP_D3;
 
     if (paintingIndex >= PAINTING_WARP_INDEX_START && paintingIndex < PAINTING_WARP_INDEX_END) {
         if (paintingIndex < PAINTING_WARP_INDEX_FA
             || gMarioState->pos[1] - gMarioState->floorHeight < 80.0f) {
+            gIsGravityFlipped = FALSE;
             warpNode = &gCurrentArea->paintingWarpNodes[paintingIndex];
         }
     }
