@@ -206,7 +206,7 @@ void bobomb_thrown_loop(void) {
     o->oHeldState = 0;
     o->oFlags &= ~0x8; /* bit 3 */
     o->oForwardVel = 25.0;
-    o->oVelY = 20.0;
+    o->oVelY = (gIsGravityFlipped ? -20.f : 20.f);
     o->oAction = BOBOMB_ACT_LAUNCHED;
 }
 

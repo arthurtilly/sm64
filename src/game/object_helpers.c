@@ -1100,7 +1100,7 @@ static void cur_obj_move_after_thrown_or_dropped(f32 forwardVel, f32 velY) {
     }
 
     o->oForwardVel = forwardVel;
-    o->oVelY = velY;
+    o->oVelY = (gIsGravityFlipped ? -velY : velY);
 
     if (o->oForwardVel != 0) {
         cur_obj_move_y(/*gravity*/ -4.0f, /*bounce*/ -0.1f, /*buoyancy*/ 2.0f);
