@@ -6827,6 +6827,8 @@ void find_mario_floor_and_ceil(struct PlayerGeometry *pg) {
     s16 tempCheckingSurfaceCollisionsForCamera = gCheckingSurfaceCollisionsForCamera;
     gCheckingSurfaceCollisionsForCamera = TRUE;
 
+    gGravityMode = gIsGravityFlipped; // Enable gravity for checks
+
     if (find_floor(sMarioCamState->pos[0], sMarioCamState->pos[1] + 10.f,
                    sMarioCamState->pos[2], &surf) != -11000.f) {
         pg->currFloorType = surf->type;
@@ -6850,6 +6852,8 @@ void find_mario_floor_and_ceil(struct PlayerGeometry *pg) {
                                    sMarioCamState->pos[2], &pg->currCeil);
     pg->waterHeight = find_water_level(sMarioCamState->pos[0], sMarioCamState->pos[2]);
     gCheckingSurfaceCollisionsForCamera = tempCheckingSurfaceCollisionsForCamera;
+    
+    gGravityMode = 0;
 }
 
 /**

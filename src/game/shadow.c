@@ -211,7 +211,7 @@ s8 init_shadow(struct Shadow *s, f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, 
     s->parentY = yPos;
     s->parentZ = zPos;
 
-    s->floorHeight = find_floor_height_and_data(s->parentX, s->parentY, s->parentZ, &floorGeometry);
+    s->floorHeight = find_floor_height_and_data(s->parentX, s->parentY-70.f, s->parentZ, &floorGeometry); // awful hack
 
     if (gEnvironmentRegions != 0) {
         waterLevel = get_water_level_below_shadow(s);
@@ -389,7 +389,7 @@ void calculate_vertex_xyz(s8 index, struct Shadow s, f32 *xPosVtx, f32 *yPosVtx,
                 // Clamp this vertex's y-position to that of the floor directly
                 // below it, which may differ from the floor below the center
                 // vertex.
-                *yPosVtx = find_floor_height_and_data(*xPosVtx, s.parentY, *zPosVtx, &dummy);
+                *yPosVtx = find_floor_height_and_data(*xPosVtx, s.parentY-70.f, *zPosVtx, &dummy); // awful hack
                 break;
             case SHADOW_WITH_4_VERTS:
                 // Do not clamp. Instead, extrapolate the y-position of this
