@@ -375,6 +375,8 @@ void init_mario_after_warp(void) {
         gPlayerSpawnInfos[0].startAngle[0] = 0;
         gPlayerSpawnInfos[0].startAngle[1] = spawnNode->object->oMoveAngleYaw;
         gPlayerSpawnInfos[0].startAngle[2] = 0;
+        
+        if (gIsGravityFlipped) gPlayerSpawnInfos[0].startPos[1] = 9000.f - gPlayerSpawnInfos[0].startPos[1]; // If gravity is flipped when warping
 
         if (marioSpawnType == MARIO_SPAWN_UNKNOWN_01) {
             init_door_warp(&gPlayerSpawnInfos[0], sWarpDest.arg);
