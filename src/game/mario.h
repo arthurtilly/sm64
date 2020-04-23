@@ -52,5 +52,6 @@ extern s32 set_water_plunge_action(struct MarioState *m);
 extern s32 execute_mario_action(struct Object *o);
 extern void init_mario(void);
 extern void init_mario_from_save_file(void);
+extern void vec3f_copy_with_gravity_switch(Vec3f, Vec3f);
 
 #endif /* _MARIO_H */

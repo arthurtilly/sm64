@@ -187,7 +187,7 @@ static u32 perform_water_step(struct MarioState *m) {
 
     stepResult = perform_water_full_step(m, nextPos);
 
-    vec3f_copy(marioObj->header.gfx.pos, m->pos);
+    vec3f_copy_with_gravity_switch(marioObj->header.gfx.pos, m->pos);
     vec3s_set(marioObj->header.gfx.angle, -m->faceAngle[0], m->faceAngle[1], m->faceAngle[2]);
 
     return stepResult;
@@ -198,7 +198,7 @@ static BAD_RETURN(u32) update_water_pitch(struct MarioState *m) {
 
     if (marioObj->header.gfx.angle[0] > 0) {
         marioObj->header.gfx.pos[1] +=
-            60.0f * sins(marioObj->header.gfx.angle[0]) * sins(marioObj->header.gfx.angle[0]);
+            60.0f * sins(marioObj->header.gfx.angle[0]) * sins(marioObj->header.gfx.angle[0]); // GRAVITY
     }
 
     if (marioObj->header.gfx.angle[0] < 0) {
@@ -424,7 +424,7 @@ static void reset_float_globals(struct MarioState *m) {
 static void float_surface_gfx(struct MarioState *m) {
     if (D_80339FD2 != 0 && m->pos[1] > m->waterLevel - 85 && m->faceAngle[0] >= 0) {
         if ((D_80339FD0 += D_80339FD2) >= 0) {
-            m->marioObj->header.gfx.pos[1] += D_80339FD4 * sins(D_80339FD0);
+            m->marioObj->header.gfx.pos[1] += D_80339FD4 * sins(D_80339FD0); // GRAVITY
             return;
         }
     }
@@ -1070,7 +1070,7 @@ static s32 act_caught_in_whirlpool(struct MarioState *m) {
     m->faceAngle[1] = atan2s(dz, dx) + 0x8000;
 
     set_mario_animation(m, MARIO_ANIM_GENERAL_FALL);
-    vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
+    vec3f_copy_with_gravity_switch(m->marioObj->header.gfx.pos, m->pos);
     vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
 
     return FALSE;
@@ -1099,7 +1099,7 @@ static void update_metal_water_walking_speed(struct MarioState *m) {
         m->forwardVel += 1.1f;
     } else if (m->forwardVel <= val) {
         m->forwardVel += 1.1f - m->forwardVel / 43.0f;
-    } else if (m->floor->normal.y >= 0.95f) {
+    } else if (ABS(m->floor->normal.y) >= 0.95f) {
         m->forwardVel -= 1.0f;
     }
 

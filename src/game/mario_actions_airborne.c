@@ -12,6 +12,7 @@
 #include "save_file.h"
 #include "audio/external.h"
 #include "engine/graph_node.h"
+#include "engine/surface_collision.h"
 
 void play_flip_sounds(struct MarioState *m, s16 frame1, s16 frame2, s16 frame3) {
     s32 animFrame = m->marioObj->header.gfx.unk38.animFrame;
@@ -890,8 +891,12 @@ s32 act_ground_pound(struct MarioState *m) {
                 m->pos[1] += yOffset;
                 m->peakHeight = m->pos[1];
                 vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
+                // Ground pound explicitly sets GFX position, so undo the transform
+                if (gGravityMode) m->marioObj->header.gfx.pos[1] = 9000.f - m->marioObj->header.gfx.pos[1];
             }
         }
+        
+        m->marioObj->header.gfx.angle[2] = 0; // GP doesn't do air steps while in mid-air, so reset roll manually each frame
 
         m->vel[1] = -50.0f;
         mario_set_forward_vel(m, 0.0f);
@@ -1387,7 +1392,7 @@ s32 act_butt_slide_air(struct MarioState *m) {
 
     switch (perform_air_step(m, 0)) {
         case AIR_STEP_LANDED:
-            if (m->actionState == 0 && m->vel[1] < 0.0f && m->floor->normal.y >= 0.9848077f) {
+            if (m->actionState == 0 && m->vel[1] < 0.0f && ABS(m->floor->normal.y) >= 0.9848077f) {
                 m->vel[1] = -m->vel[1] / 2.0f;
                 m->actionState = 1;
             } else {
@@ -1426,7 +1431,7 @@ s32 act_hold_butt_slide_air(struct MarioState *m) {
 
     switch (perform_air_step(m, 0)) {
         case AIR_STEP_LANDED:
-            if (m->actionState == 0 && m->vel[1] < 0.0f && m->floor->normal.y >= 0.9848077f) {
+            if (m->actionState == 0 && m->vel[1] < 0.0f && ABS(m->floor->normal.y) >= 0.9848077f) {
                 m->vel[1] = -m->vel[1] / 2.0f;
                 m->actionState = 1;
             } else {
@@ -1792,7 +1797,7 @@ s32 act_riding_hoot(struct MarioState *m) {
     }
 
     vec3f_set(m->vel, 0.0f, 0.0f, 0.0f);
-    vec3f_set(m->marioObj->header.gfx.pos, m->pos[0], m->pos[1], m->pos[2]);
+    vec3f_copy_with_gravity_switch(m->marioObj->header.gfx.pos, m->pos);
     vec3s_set(m->marioObj->header.gfx.angle, 0, 0x4000 - m->faceAngle[1], 0);
     return FALSE;
 }

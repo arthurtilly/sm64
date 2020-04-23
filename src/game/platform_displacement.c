@@ -38,10 +38,12 @@ void update_mario_platform(void) {
     //  will detect the platform and he will end up receiving a large amount
     //  of displacement since he is considered to be far from the platform's
     //  axis of rotation.
+    
+    gGravityMode = gIsGravityFlipped; // This does not take place during Mario's update function, so flip gravity again
 
-    marioX = gMarioObject->oPosX;
-    marioY = gMarioObject->oPosY;
-    marioZ = gMarioObject->oPosZ;
+    marioX = gMarioState->pos[0];
+    marioY = gMarioState->pos[1];
+    marioZ = gMarioState->pos[2];
     floorHeight = find_floor(marioX, marioY, marioZ, &floor);
 
     if (absf(marioY - floorHeight) < 4.0f) {
@@ -66,6 +68,8 @@ void update_mario_platform(void) {
             }
             break;
     }
+    
+    gGravityMode = 0; // Reset gravity
 }
 
 /**

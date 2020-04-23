@@ -429,6 +429,13 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
     point1[1] = find_floor(point1[0], pos[1] + 150, point1[2], &sp74);
     point2[1] = find_floor(point2[0], pos[1] + 150, point2[2], &sp74);
 
+    if (gGravityMode) { // Transform all points
+        point0[1] = 9000.f-point0[1];
+        point1[1] = 9000.f-point1[1];
+        point2[1] = 9000.f-point2[1];
+        pos[1] = 9000.f-pos[1];
+    }
+
     if (point0[1] - pos[1] < minY) {
         point0[1] = pos[1];
     }
@@ -446,6 +453,13 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
     vec3f_set(forward, sins(yaw), 0, coss(yaw));
     find_vector_perpendicular_to_plane(yColumn, point0, point1, point2);
     vec3f_normalize(yColumn);
+    
+    if (gGravityMode) { // Flip the angle upside down
+        yColumn[0] = -yColumn[0];
+        yColumn[1] = -yColumn[1];
+        yColumn[2] = -yColumn[2];
+    }
+    
     vec3f_cross(xColumn, yColumn, forward);
     vec3f_normalize(xColumn);
     vec3f_cross(zColumn, xColumn, yColumn);

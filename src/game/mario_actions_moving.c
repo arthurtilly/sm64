@@ -11,6 +11,7 @@
 #include "mario_actions_object.h"
 #include "memory.h"
 #include "behavior_data.h"
+#include "camera.h"
 
 struct LandingAction {
     s16 numFrames;
@@ -85,8 +86,12 @@ void play_step_sound(struct MarioState *m, s16 frame1, s16 frame2) {
 }
 
 void align_with_floor(struct MarioState *m) {
-    m->pos[1] = m->floorHeight;
-    mtxf_align_terrain_triangle(D_80339F50[m->unk00], m->pos, m->faceAngle[1], 40.0f);
+    // Use a temp position so m->pos is not passed to the function
+    Vec3f tempPos;
+    vec3f_copy(tempPos,m->pos);
+    tempPos[1] = m->floorHeight;
+    
+    mtxf_align_terrain_triangle(D_80339F50[m->unk00], tempPos, m->faceAngle[1], 40.0f);
     m->marioObj->header.gfx.throwMatrix = &D_80339F50[m->unk00];
 }
 
@@ -376,7 +381,7 @@ void update_shell_speed(struct MarioState *m) {
         m->forwardVel += 1.1f;
     } else if (m->forwardVel <= targetSpeed) {
         m->forwardVel += 1.1f - m->forwardVel / 58.0f;
-    } else if (m->floor->normal.y >= 0.95f) {
+    } else if (ABS(m->floor->normal.y) >= 0.95f) {
         m->forwardVel -= 1.0f;
     }
 
@@ -452,7 +457,7 @@ void update_walking_speed(struct MarioState *m) {
         m->forwardVel += 1.1f;
     } else if (m->forwardVel <= targetSpeed) {
         m->forwardVel += 1.1f - m->forwardVel / 43.0f;
-    } else if (m->floor->normal.y >= 0.95f) {
+    } else if (ABS(m->floor->normal.y) >= 0.95f) {
         m->forwardVel -= 1.0f;
     }
 
@@ -507,7 +512,7 @@ s32 begin_braking_action(struct MarioState *m) {
         return set_mario_action(m, ACT_STANDING_AGAINST_WALL, 0);
     }
 
-    if (m->forwardVel >= 16.0f && m->floor->normal.y >= 0.17364818f) {
+    if (m->forwardVel >= 16.0f && ABS(m->floor->normal.y) >= 0.17364818f) {
         return set_mario_action(m, ACT_BRAKING, 0);
     }
 
@@ -776,7 +781,7 @@ void tilt_body_ground_shell(struct MarioState *m, s16 startYaw) {
     val0C->headAngle[2] = -val0C->torsoAngle[2];
 
     marioObj->header.gfx.angle[2] = val0C->torsoAngle[2];
-    marioObj->header.gfx.pos[1] += 45.0f;
+    marioObj->header.gfx.pos[1] += 45.0f; // GRAVITY
 }
 
 s32 act_walking(struct MarioState *m) {
@@ -1744,7 +1749,7 @@ s32 common_landing_cancels(struct MarioState *m, struct LandingAction *landingAc
     //! Everything here, incuding floor steepness, is checked before checking
     // if mario is actually on the floor. This leads to e.g. remote sliding.
 
-    if (m->floor->normal.y < 0.2923717f) {
+    if (ABS(m->floor->normal.y) < 0.2923717f) {
         return mario_push_off_steep_floor(m, landingAction->verySteepAction, 0);
     }
 

@@ -233,7 +233,7 @@ void copy_mario_state_to_object(void) {
     gCurrentObject->oVelZ = gMarioStates[i].vel[2];
 
     gCurrentObject->oPosX = gMarioStates[i].pos[0];
-    gCurrentObject->oPosY = gMarioStates[i].pos[1];
+    gCurrentObject->oPosY = (gGravityMode ? 9000.f - gMarioStates[i].pos[1] : gMarioStates[i].pos[1]);
     gCurrentObject->oPosZ = gMarioStates[i].pos[2];
 
     gCurrentObject->oMoveAnglePitch = gCurrentObject->header.gfx.angle[0];
@@ -264,9 +264,20 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 /**
  * Mario's primary behavior update function.
  */
+extern struct Controller *gPlayer1Controller;
+ 
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
+    
+    if (gPlayer1Controller->buttonPressed & L_TRIG) { // Flip gravity
+        gIsGravityFlipped = !gIsGravityFlipped;
+        gMarioState->pos[1] = 9000.f - gMarioState->pos[1]; // Transform position
+        gMarioState->vel[1] = -gMarioState->vel[1]; // Flip velocity
+        gMarioState->peakHeight = 9000.f - gMarioState->peakHeight; // For fall damage
+    }
+    
+    gGravityMode = gIsGravityFlipped;
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
@@ -284,6 +295,10 @@ void bhv_mario_update(void) {
 
         i++;
     }
+    
+    if (gGravityMode) gMarioObject->header.gfx.angle[2] += 0x8000; // Turn Mario upside down
+    
+    gGravityMode = FALSE; // Gravity must only be flipped when checking Mario's collision, not other objects.
 }
 
 /**
