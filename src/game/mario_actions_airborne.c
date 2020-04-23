@@ -642,7 +642,7 @@ s32 act_riding_shell_air(struct MarioState *m) {
             break;
     }
 
-    m->marioObj->header.gfx.pos[1] += 42.0f;
+    m->marioObj->header.gfx.pos[1] += (gGravityMode ? -42.0f : 42.0f);
     return FALSE;
 }
 
