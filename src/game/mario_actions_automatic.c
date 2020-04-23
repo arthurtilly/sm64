@@ -64,8 +64,10 @@ s32 set_pole_position(struct MarioState *m, f32 offsetY) {
     f32 ceilHeight;
     s32 collided;
     s32 result = POLE_NONE;
-    f32 poleTop = m->usedObj->hitboxHeight - 100.0f;
     struct Object *marioObj = m->marioObj;
+    f32 poleBottom = (gGravityMode ? 0 : -m->usedObj->hitboxDownOffset);
+    f32 poleTop = m->usedObj->hitboxHeight - 100.0f;
+    if (gGravityMode) poleTop += m->usedObj->hitboxDownOffset;
 
     if (marioObj->oMarioPolePos > poleTop) {
         marioObj->oMarioPolePos = poleTop;
@@ -73,7 +75,11 @@ s32 set_pole_position(struct MarioState *m, f32 offsetY) {
 
     m->pos[0] = m->usedObj->oPosX;
     m->pos[2] = m->usedObj->oPosZ;
-    m->pos[1] = m->usedObj->oPosY + marioObj->oMarioPolePos + offsetY;
+
+    if (gGravityMode)
+        m->pos[1] = 9000.f - (m->usedObj->oPosY + m->usedObj->hitboxHeight + 100.f - marioObj->oMarioPolePos - offsetY);
+    else
+        m->pos[1] = m->usedObj->oPosY + marioObj->oMarioPolePos + offsetY;
 
     collided = f32_find_wall_collision(&m->pos[0], &m->pos[1], &m->pos[2], 60.0f, 50.0f);
     collided |= f32_find_wall_collision(&m->pos[0], &m->pos[1], &m->pos[2], 30.0f, 24.0f);
@@ -81,7 +87,10 @@ s32 set_pole_position(struct MarioState *m, f32 offsetY) {
     ceilHeight = vec3f_find_ceil(m->pos, m->pos[1], &ceil);
     if (m->pos[1] > ceilHeight - 160.0f) {
         m->pos[1] = ceilHeight - 160.0f;
-        marioObj->oMarioPolePos = m->pos[1] - m->usedObj->oPosY;
+        if (gGravityMode)
+            marioObj->oMarioPolePos = m->usedObj->oPosY - (9000.f - m->pos[1]) + m->usedObj->hitboxHeight + 100.f;
+        else
+            marioObj->oMarioPolePos = m->pos[1] - m->usedObj->oPosY;
     }
 
     floorHeight = find_floor(m->pos[0], m->pos[1], m->pos[2], &floor);
@@ -89,8 +98,12 @@ s32 set_pole_position(struct MarioState *m, f32 offsetY) {
         m->pos[1] = floorHeight;
         set_mario_action(m, ACT_IDLE, 0);
         result = POLE_TOUCHED_FLOOR;
-    } else if (marioObj->oMarioPolePos < -m->usedObj->hitboxDownOffset) {
-        m->pos[1] = m->usedObj->oPosY - m->usedObj->hitboxDownOffset;
+    } else if (marioObj->oMarioPolePos < poleBottom) {
+        if (gGravityMode)
+            m->pos[1] = 9000.f - (m->usedObj->oPosY + m->usedObj->hitboxHeight + 100.f);
+        else
+            m->pos[1] = m->usedObj->oPosY - m->usedObj->hitboxDownOffset;
+        
         set_mario_action(m, ACT_FREEFALL, 0);
         result = POLE_FELL_OFF;
     } else if (collided) {
@@ -140,21 +153,23 @@ s32 act_holding_pole(struct MarioState *m) {
     }
 #endif
 
-    if (m->controller->stickY > 16.0f) {
+    if (((m->controller->stickY > 16.0f) && !(gGravityMode)) || ((m->controller->stickY < -16.0f) && gGravityMode)) {
         f32 poleTop = m->usedObj->hitboxHeight - 100.0f;
         void *poleBehavior = virtual_to_segmented(0x13, m->usedObj->behavior);
+        
+        if (gGravityMode) poleTop += m->usedObj->hitboxDownOffset;
 
         if (marioObj->oMarioPolePos < poleTop - 0.4f) {
             return set_mario_action(m, ACT_CLIMBING_POLE, 0);
         }
 
-        if (poleBehavior != bhvGiantPole && m->controller->stickY > 50.0f) {
+        if (poleBehavior != bhvGiantPole && (((m->controller->stickY > 50.0f) && !(gGravityMode)) || ((m->controller->stickY < -50.0f) && gGravityMode))) {
             return set_mario_action(m, ACT_TOP_OF_POLE_TRANSITION, 0);
         }
     }
 
-    if (m->controller->stickY < -16.0f) {
-        marioObj->oMarioPoleYawVel -= m->controller->stickY * 2;
+    if (((m->controller->stickY < -16.0f) && !(gGravityMode)) || ((m->controller->stickY > 16.0f) && gGravityMode)) {
+        marioObj->oMarioPoleYawVel -= m->controller->stickY * (gGravityMode ? -2 : 2);
         if (marioObj->oMarioPoleYawVel > 0x1000) {
             marioObj->oMarioPoleYawVel = 0x1000;
         }
@@ -202,17 +217,17 @@ s32 act_climbing_pole(struct MarioState *m) {
         return set_mario_action(m, ACT_WALL_KICK_AIR, 0);
     }
 
-    if (m->controller->stickY < 8.0f) {
+    if (((m->controller->stickY < 8.0f) && !(gGravityMode)) || ((m->controller->stickY > -8.0f) && gGravityMode)) {
         return set_mario_action(m, ACT_HOLDING_POLE, 0);
     }
 
-    marioObj->oMarioPolePos += m->controller->stickY / 8.0f;
+    marioObj->oMarioPolePos += (gGravityMode ? -m->controller->stickY : m->controller->stickY) / 8.0f;
     marioObj->oMarioPoleYawVel = 0;
     m->faceAngle[1] = cameraAngle - approach_s32((s16)(cameraAngle - m->faceAngle[1]), 0, 0x400, 0x400);
 
     if (set_pole_position(m, 0.0f) == POLE_NONE) {
         sp24 = m->controller->stickY / 4.0f * 0x10000;
-        set_mario_anim_with_accel(m, MARIO_ANIM_CLIMB_UP_POLE, sp24);
+        set_mario_anim_with_accel(m, MARIO_ANIM_CLIMB_UP_POLE, (gGravityMode ? -sp24: sp24));
         add_tree_leaf_particles(m);
         play_climbing_sounds(m, 1);
     }
@@ -283,7 +298,7 @@ s32 act_top_of_pole(struct MarioState *m) {
     if (m->input & INPUT_A_PRESSED) {
         return set_mario_action(m, ACT_TOP_OF_POLE_JUMP, 0);
     }
-    if (m->controller->stickY < -16.0f) {
+    if (((m->controller->stickY < -16.0f) && !(gGravityMode)) || ((m->controller->stickY > 16.0f) && gGravityMode)) {
         return set_mario_action(m, ACT_TOP_OF_POLE_TRANSITION, 1);
     }
 
