@@ -292,7 +292,7 @@ void update_flying_yaw(struct MarioState *m) {
 }
 
 void update_flying_pitch(struct MarioState *m) {
-    s16 targetPitchVel = -(s16)(m->controller->stickY * (m->forwardVel / 5.0f));
+    s16 targetPitchVel = -(s16)((gGravityMode ? -m->controller->stickY : m->controller->stickY) * (m->forwardVel / 5.0f));
 
     if (targetPitchVel > 0) {
         if (m->angleVel[0] < 0) {
@@ -319,11 +319,12 @@ void update_flying_pitch(struct MarioState *m) {
 
 void update_flying(struct MarioState *m) {
     UNUSED u32 unused;
+    s16 pitch = (gGravityMode ? -m->faceAngle[0] : m->faceAngle[0]);
 
     update_flying_pitch(m);
     update_flying_yaw(m);
 
-    m->forwardVel -= 2.0f * ((f32) m->faceAngle[0] / 0x4000) + 0.1f;
+    m->forwardVel -= 2.0f * ((f32) pitch / 0x4000) + 0.1f;
     m->forwardVel -= 0.5f * (1.0f - coss(m->angleVel[1]));
 
     if (m->forwardVel < 0.0f) {
@@ -331,25 +332,27 @@ void update_flying(struct MarioState *m) {
     }
 
     if (m->forwardVel > 16.0f) {
-        m->faceAngle[0] += (m->forwardVel - 32.0f) * 6.0f;
+        pitch += (m->forwardVel - 32.0f) * 6.0f;
     } else if (m->forwardVel > 4.0f) {
-        m->faceAngle[0] += (m->forwardVel - 32.0f) * 10.0f;
+        pitch += (m->forwardVel - 32.0f) * 10.0f;
     } else {
-        m->faceAngle[0] -= 0x400;
+        pitch -= 0x400;
     }
 
-    m->faceAngle[0] += m->angleVel[0];
+    pitch += m->angleVel[0];
 
-    if (m->faceAngle[0] > 0x2AAA) {
-        m->faceAngle[0] = 0x2AAA;
+    if (pitch > 0x2AAA) {
+        pitch = 0x2AAA;
     }
-    if (m->faceAngle[0] < -0x2AAA) {
-        m->faceAngle[0] = -0x2AAA;
+    if (pitch < -0x2AAA) {
+        pitch = -0x2AAA;
     }
 
-    m->vel[0] = m->forwardVel * coss(m->faceAngle[0]) * sins(m->faceAngle[1]);
-    m->vel[1] = m->forwardVel * sins(m->faceAngle[0]);
-    m->vel[2] = m->forwardVel * coss(m->faceAngle[0]) * coss(m->faceAngle[1]);
+    m->vel[0] = m->forwardVel * coss(pitch) * sins(m->faceAngle[1]);
+    m->vel[1] = m->forwardVel * sins(pitch);
+    m->vel[2] = m->forwardVel * coss(pitch) * coss(m->faceAngle[1]);
+    
+    m->faceAngle[0] = (gGravityMode ? -pitch : pitch);
 
     m->slideVelX = m->vel[0];
     m->slideVelZ = m->vel[2];
@@ -708,10 +711,15 @@ s32 act_dive(struct MarioState *m) {
 
     switch (perform_air_step(m, 0)) {
         case AIR_STEP_NONE:
-            if (m->vel[1] < 0.0f && m->faceAngle[0] > -0x2AAA) {
-                m->faceAngle[0] -= 0x200;
-                if (m->faceAngle[0] < -0x2AAA) {
-                    m->faceAngle[0] = -0x2AAA;
+            if (m->vel[1] < 0.0f) {
+                if (gGravityMode) {
+                    m->faceAngle[0] += 0x200;
+                    if (m->faceAngle[0] > 0x2AAA)
+                        m->faceAngle[0] = 0x2AAA;
+                } else {
+                    m->faceAngle[0] -= 0x200;
+                    if (m->faceAngle[0] < -0x2AAA)
+                        m->faceAngle[0] = -0x2AAA;
                 }
             }
             m->marioObj->header.gfx.angle[0] = -m->faceAngle[0];
@@ -1613,7 +1621,7 @@ s32 act_shot_from_cannon(struct MarioState *m) {
     switch (perform_air_step(m, 0)) {
         case AIR_STEP_NONE:
             set_mario_animation(m, MARIO_ANIM_AIRBORNE_ON_STOMACH);
-            m->faceAngle[0] = atan2s(m->forwardVel, m->vel[1]);
+            m->faceAngle[0] = atan2s(m->forwardVel, (gGravityMode ? -m->vel[1] : m->vel[1]));
             m->marioObj->header.gfx.angle[0] = -m->faceAngle[0];
             break;
 
@@ -1649,7 +1657,7 @@ s32 act_shot_from_cannon(struct MarioState *m) {
         mario_set_forward_vel(m, 10.0f);
     }
 
-    if (m->vel[1] > 0.0f) {
+    if (((m->vel[1] > 0.0f) && !gGravityMode) || ((m->vel[1] < 0.0f) && gGravityMode)) {
         m->particleFlags |= PARTICLE_DUST;
     }
     return FALSE;
@@ -1964,7 +1972,7 @@ s32 check_common_airborne_cancels(struct MarioState *m) {
     if ((m->pos[1] < m->waterLevel - 100) && !(gGravityMode)) {
         return set_water_plunge_action(m);
     }
-    if (((9000.f - m->pos[1]) < m->waterLevel) && (gGravityMode)) {
+    if (((9000.f - m->pos[1]) < m->waterLevel + 50.f) && (gGravityMode)) {
         m->vel[1] = -m->vel[1];
         gGravityMode = FALSE;
         return set_water_plunge_action(m);

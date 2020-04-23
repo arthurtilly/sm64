@@ -1658,6 +1658,11 @@ void mario_update_hitbox_and_cap_model(struct MarioState *m) {
     } else {
         m->marioObj->hitboxHeight = 160.0f;
     }
+    if (gIsGravityFlipped && !(gMarioState->action & ACT_FLAG_SWIMMING)) {
+        gMarioObject->hitboxDownOffset = (gMarioState->action & ACT_FLAG_SHORT_HITBOX ? 100.f : 160.f); // Adjust hitbox when upside down
+    } else {
+        gMarioObject->hitboxDownOffset = 0;
+    }
 
     if ((m->flags & MARIO_TELEPORTING) && (m->fadeWarpOpacity != 0xFF)) {
         bodyState->modelState &= ~0xFF;

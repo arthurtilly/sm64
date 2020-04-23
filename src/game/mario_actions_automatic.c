@@ -732,10 +732,10 @@ s32 act_in_cannon(struct MarioState *m) {
             if (m->input & INPUT_A_PRESSED) {
                 m->forwardVel = 100.0f * coss(m->faceAngle[0]);
 
-                m->vel[1] = 100.0f * sins(m->faceAngle[0]);
+                m->vel[1] = (gGravityMode ? -100.0f : 100.f) * sins(m->faceAngle[0]);
 
                 m->pos[0] += 120.0f * coss(m->faceAngle[0]) * sins(m->faceAngle[1]);
-                m->pos[1] += 120.0f * sins(m->faceAngle[0]);
+                m->pos[1] += (gGravityMode ? -120.0f : 120.f) * sins(m->faceAngle[0]);
                 m->pos[2] += 120.0f * coss(m->faceAngle[0]) * coss(m->faceAngle[1]);
 
                 play_sound(SOUND_ACTION_FLYING_FAST, m->marioObj->header.gfx.cameraToObject);
@@ -855,7 +855,7 @@ s32 check_common_automatic_cancels(struct MarioState *m) {
     if ((m->pos[1] < m->waterLevel - 100) && !(gGravityMode)) {
         return set_water_plunge_action(m);
     }
-    if (((9000.f - m->pos[1]) < m->waterLevel) && (gGravityMode)) {
+    if (((9000.f - m->pos[1]) < m->waterLevel + 50.f) && (gGravityMode)) {
         m->vel[1] = -m->vel[1];
         gGravityMode = FALSE;
         return set_water_plunge_action(m);

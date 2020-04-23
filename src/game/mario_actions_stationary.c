@@ -1099,7 +1099,7 @@ s32 check_common_stationary_cancels(struct MarioState *m) {
         update_mario_sound_and_camera(m);
         return set_water_plunge_action(m);
     }
-    if (((9000.f - m->pos[1]) < m->waterLevel) && (gGravityMode)) {
+    if (((9000.f - m->pos[1]) < m->waterLevel + 50.f) && (gGravityMode)) {
         m->vel[1] = -m->vel[1];
         gGravityMode = FALSE;
         return set_water_plunge_action(m);
