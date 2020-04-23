@@ -839,7 +839,12 @@ s32 act_tornado_twirling(struct MarioState *m) {
 }
 
 s32 check_common_automatic_cancels(struct MarioState *m) {
-    if (m->pos[1] < m->waterLevel - 100) {
+    if ((m->pos[1] < m->waterLevel - 100) && !(gGravityMode)) {
+        return set_water_plunge_action(m);
+    }
+    if (((9000.f - m->pos[1]) < m->waterLevel) && (gGravityMode)) {
+        m->vel[1] = -m->vel[1];
+        gGravityMode = FALSE;
         return set_water_plunge_action(m);
     }
 

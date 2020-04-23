@@ -14,6 +14,7 @@
 #include "level_update.h"
 #include "save_file.h"
 #include "camera.h"
+#include "engine/surface_collision.h"
 
 s32 check_common_idle_cancels(struct MarioState *m) {
     mario_drop_held_object(m);
@@ -1091,11 +1092,16 @@ s32 act_first_person(struct MarioState *m) {
 }
 
 s32 check_common_stationary_cancels(struct MarioState *m) {
-    if (m->pos[1] < m->waterLevel - 100) {
+    if ((m->pos[1] < m->waterLevel - 100) && !(gGravityMode)) {
         if (m->action == ACT_SPAWN_SPIN_LANDING) {
             load_level_init_text(0);
         }
         update_mario_sound_and_camera(m);
+        return set_water_plunge_action(m);
+    }
+    if (((9000.f - m->pos[1]) < m->waterLevel) && (gGravityMode)) {
+        m->vel[1] = -m->vel[1];
+        gGravityMode = FALSE;
         return set_water_plunge_action(m);
     }
 

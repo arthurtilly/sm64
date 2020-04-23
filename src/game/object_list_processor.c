@@ -272,9 +272,12 @@ void bhv_mario_update(void) {
     
     if (gPlayer1Controller->buttonPressed & L_TRIG) { // Flip gravity
         gIsGravityFlipped = !gIsGravityFlipped;
-        gMarioState->pos[1] = 8835.f - gMarioState->pos[1]; // Transform position. The extra 165 is due to Mario's visual model.
-        gMarioState->vel[1] = -gMarioState->vel[1]; // Flip velocity
-        gMarioState->peakHeight = 9000.f - gMarioState->peakHeight; // For fall damage
+        
+        if (!(gMarioState->action & ACT_FLAG_SWIMMING)) {
+            gMarioState->pos[1] = 8835.f - gMarioState->pos[1]; // Transform position. The extra 165 is due to Mario's visual model.
+            gMarioState->vel[1] = -gMarioState->vel[1]; // Flip velocity
+            gMarioState->peakHeight = 9000.f - gMarioState->peakHeight; // For fall damage
+        }
         if (gMarioState->action & ACT_FLAG_ON_POLE) {
             if (gIsGravityFlipped)
                 gMarioState->marioObj->oMarioPolePos = gMarioState->usedObj->oPosY - (9000.f - gMarioState->pos[1]) + gMarioState->usedObj->hitboxHeight + 100.f;
@@ -284,8 +287,9 @@ void bhv_mario_update(void) {
         gMarioObject->hitboxDownOffset = (gIsGravityFlipped ? 160.f : 0.f); // Adjust hitbox when upside down
   
     }
-    
-    gGravityMode = gIsGravityFlipped;
+
+    if (!(gMarioState->action & ACT_FLAG_SWIMMING))
+        gGravityMode = gIsGravityFlipped;
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;

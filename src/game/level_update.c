@@ -529,15 +529,19 @@ void warp_credits(void) {
 
 void check_instant_warp(void) {
     s16 cameraAngle;
-    struct Surface *floor;
+    struct Surface *floor, *ceil;
 
     if (gCurrLevelNum == LEVEL_CASTLE
         && save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1) >= 70) {
         return;
     }
-
-    if ((floor = gMarioState->floor) != NULL) {
-        s32 index = floor->type - SURFACE_INSTANT_WARP_1B;
+    
+    // Make sure instant warps work both sides up
+    floor = gMarioState->floor;
+    ceil = gMarioState->ceil;
+    
+    if ((!(gIsGravityFlipped) && (floor != NULL)) || ((gIsGravityFlipped) && (ceil != NULL))) {
+        s32 index = (gIsGravityFlipped ? ceil->type : floor->type) - SURFACE_INSTANT_WARP_1B;
         if (index >= INSTANT_WARP_INDEX_START && index < INSTANT_WARP_INDEX_STOP
             && gCurrentArea->instantWarps != NULL) {
             struct InstantWarp *warp = &gCurrentArea->instantWarps[index];

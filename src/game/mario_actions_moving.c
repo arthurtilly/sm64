@@ -1933,10 +1933,14 @@ s32 act_hold_quicksand_jump_land(struct MarioState *m) {
 }
 
 s32 check_common_moving_cancels(struct MarioState *m) {
-    if (m->pos[1] < m->waterLevel - 100) {
+    if ((m->pos[1] < m->waterLevel - 100) && !(gGravityMode)) {
         return set_water_plunge_action(m);
     }
-
+    if (((9000.f - m->pos[1]) < m->waterLevel) && (gGravityMode)) {
+        m->vel[1] = -m->vel[1];
+        gGravityMode = FALSE;
+        return set_water_plunge_action(m);
+    }
     if (!(m->action & ACT_FLAG_INVULNERABLE) && (m->input & INPUT_UNKNOWN_10)) {
         return drop_and_set_mario_action(m, ACT_UNKNOWN_026, 0);
     }

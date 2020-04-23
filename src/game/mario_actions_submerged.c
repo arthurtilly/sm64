@@ -180,9 +180,13 @@ static u32 perform_water_step(struct MarioState *m) {
     nextPos[1] = m->pos[1] + step[1];
     nextPos[2] = m->pos[2] + step[2];
 
-    if (nextPos[1] > m->waterLevel - 80) {
-        nextPos[1] = m->waterLevel - 80;
+    if ((gIsGravityFlipped) && (nextPos[1] > m->waterLevel - 80.f)) {
+        set_mario_action(m, ACT_FREEFALL, 0);
         m->vel[1] = 0.0f;
+        m->pos[1] = 8835.f - m->pos[1];
+        gGravityMode = TRUE;
+        set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
+        return WATER_STEP_CANCELLED;
     }
 
     stepResult = perform_water_full_step(m, nextPos);

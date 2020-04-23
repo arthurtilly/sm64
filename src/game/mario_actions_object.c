@@ -9,6 +9,7 @@
 #include "interaction.h"
 #include "audio_defines.h"
 #include "engine/math_util.h"
+#include "engine/surface_collision.h"
 
 /**
  * Used by act_punching() to determine Mario's forward velocity during each
@@ -418,8 +419,12 @@ s32 act_releasing_bowser(struct MarioState *m) {
 }
 
 s32 check_common_object_cancels(struct MarioState *m) {
-    f32 waterSurface = m->waterLevel - 100;
-    if (m->pos[1] < waterSurface) {
+    if ((m->pos[1] < m->waterLevel - 100) && !(gGravityMode)) {
+        return set_water_plunge_action(m);
+    }
+    if (((9000.f - m->pos[1]) < m->waterLevel) && (gGravityMode)) {
+        m->vel[1] = -m->vel[1];
+        gGravityMode = FALSE;
         return set_water_plunge_action(m);
     }
 
