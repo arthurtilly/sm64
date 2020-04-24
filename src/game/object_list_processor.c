@@ -269,9 +269,17 @@ extern struct Controller *gPlayer1Controller;
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
-    
-    if (gPlayer1Controller->buttonPressed & L_TRIG) { // Flip gravity
+    u32 val4 = get_dialog_id() >= 0;
+    u32 intangible = (gMarioState->action & ACT_FLAG_INTANGIBLE) != 0;
+
+    if (!intangible && !val4 && !gWarpTransition.isActive && sDelayedWarpOp == WARP_OP_NONE
+        && (gPlayer1Controller->buttonPressed & L_TRIG)) {
         gIsGravityFlipped = !gIsGravityFlipped;
+        
+        if (gIsGravityFlipped)
+            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gMarioObject->header.gfx.pos);
+        else
+            play_sound(SOUND_MENU_CAMERA_ZOOM_OUT, gMarioObject->header.gfx.pos);
         
         if (!(gMarioState->action & ACT_FLAG_SWIMMING)) {
             gMarioState->pos[1] = 8835.f - gMarioState->pos[1]; // Transform position. The extra 165 is due to Mario's visual model.

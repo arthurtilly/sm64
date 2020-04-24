@@ -24,6 +24,7 @@
 #include "interaction.h"
 #include "object_list_processor.h"
 #include "dialog_ids.h"
+#include "engine/surface_collision.h"
 
 #define TOAD_STAR_1_REQUIREMENT 12
 #define TOAD_STAR_2_REQUIREMENT 25

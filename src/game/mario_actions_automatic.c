@@ -92,6 +92,11 @@ s32 set_pole_position(struct MarioState *m, f32 offsetY) {
         else
             marioObj->oMarioPolePos = m->pos[1] - m->usedObj->oPosY;
     }
+    
+    if ((virtual_to_segmented(0x13, m->usedObj->behavior) == bhvGiantPole) && gGravityMode) {
+        if (marioObj->oMarioPolePos < 100)
+            marioObj->oMarioPolePos = 100;
+    }
 
     floorHeight = find_floor(m->pos[0], m->pos[1], m->pos[2], &floor);
     if (m->pos[1] < floorHeight) {

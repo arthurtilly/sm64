@@ -1524,6 +1524,8 @@ void update_mario_info_for_cam(struct MarioState *m) {
     if ((m->flags & MARIO_UNKNOWN_25) == 0) {
         vec3f_copy_with_gravity_switch(m->statusForCamera->pos, m->pos);
     }
+    if (gGravityMode)
+        m->statusForCamera->pos[1] -= 165.f;
 }
 
 /**

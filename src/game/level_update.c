@@ -655,7 +655,6 @@ struct WarpNode *get_painting_warp_node(void) {
     if (paintingIndex >= PAINTING_WARP_INDEX_START && paintingIndex < PAINTING_WARP_INDEX_END) {
         if (paintingIndex < PAINTING_WARP_INDEX_FA
             || gMarioState->pos[1] - gMarioState->floorHeight < 80.0f) {
-            gIsGravityFlipped = FALSE;
             warpNode = &gCurrentArea->paintingWarpNodes[paintingIndex];
         }
     }
@@ -682,6 +681,7 @@ void initiate_painting_warp(void) {
                 }
 
                 initiate_warp(warpNode.destLevel & 0x7F, warpNode.destArea, warpNode.destNode, 0);
+                gIsGravityFlipped = FALSE;
                 check_if_should_set_warp_checkpoint(&warpNode);
 
                 play_transition_after_delay(WARP_TRANSITION_FADE_INTO_COLOR, 30, 255, 255, 255, 45);
@@ -703,6 +703,8 @@ void initiate_painting_warp(void) {
  * based on the warp operation and sometimes mario's used object.
  * Return the time left until the delayed warp is initiated.
  */
+extern struct Surface gCeilingDeathPlane;
+ 
 s16 level_trigger_warp(struct MarioState *m, s32 warpOp) {
     s32 val04 = TRUE;
 
@@ -748,7 +750,7 @@ s16 level_trigger_warp(struct MarioState *m, s32 warpOp) {
 
             case WARP_OP_WARP_FLOOR:
                 sSourceWarpNodeId = WARP_NODE_WARP_FLOOR;
-                if (area_get_warp_node(sSourceWarpNodeId) == NULL) {
+                if ((area_get_warp_node(sSourceWarpNodeId) == NULL) || (gMarioState->floor = &gCeilingDeathPlane)) {
                     if (m->numLives == 0) {
                         sDelayedWarpOp = WARP_OP_GAME_OVER;
                     } else {

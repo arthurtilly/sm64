@@ -1704,6 +1704,8 @@ s32 act_death_exit_land(struct MarioState *m) {
     if (is_anim_at_end(m)) {
         set_mario_action(m, ACT_IDLE, 0);
     }
+    
+    gMarioObject->header.gfx.angle[2] = 0;
 
     return FALSE;
 }
