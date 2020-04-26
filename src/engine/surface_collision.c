@@ -157,7 +157,9 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
         //! (Wall Overlaps) Because this doesn't update the x and z local variables,
         //  multiple walls can push mario more than is required.
         data->x += surf->normal.x * (radius - offset);
+        x += surf->normal.x * (radius - offset);
         data->z += surf->normal.z * (radius - offset);
+        z += surf->normal.z * (radius - offset);
 
         //! (Unreferenced Walls) Since this only returns the first four walls,
         //  this can lead to wall interaction being missed. Typically unreferenced walls

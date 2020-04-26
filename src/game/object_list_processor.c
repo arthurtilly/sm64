@@ -305,9 +305,9 @@ void bhv_mario_update(void) {
     obj = spawn_object(gCurrentObject, MODEL_STAR, bhvSmallParticle);
     obj_set_pos(obj,test[0],test[1],test[2]);
     
-    transform_surface_vars(&gStaticSurfacePartition[0]);
-    transform_surface_vars(&gStaticSurfacePartition[1]);
-    transform_surface_vars(&gStaticSurfacePartition[2]);
+    transform_surface_vars(gStaticSurfacePartition[0].next);
+    transform_surface_vars(gStaticSurfacePartition[1].next);
+    transform_surface_vars(gStaticSurfacePartition[2].next);
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
