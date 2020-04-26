@@ -21,8 +21,8 @@ typedef struct SurfaceNode SpatialPartitionCell[3];
 // Needed for bs bss reordering memes.
 extern s32 unused8038BE90;
 
-extern SpatialPartitionCell gStaticSurfacePartition[16][16];
-extern SpatialPartitionCell gDynamicSurfacePartition[16][16];
+extern SpatialPartitionCell gStaticSurfacePartition;
+extern SpatialPartitionCell gDynamicSurfacePartition;
 extern struct SurfaceNode *sSurfaceNodePool;
 extern struct Surface *sSurfacePool;
 extern s16 sSurfacePoolSize;

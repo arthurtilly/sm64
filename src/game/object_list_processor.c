@@ -271,7 +271,7 @@ void bhv_mario_update(void) {
     Vec3f test, up, pos;
     struct Object *obj;
     
-    vec3f_set(up,0.5,-0.3,-1);
+    vec3f_set(up,0,1,0);
     vec3f_normalize(up);
     vec3f_set(pos, -gMarioState->pos[0], -gMarioState->pos[1], -gMarioState->pos[2]);
     
@@ -287,20 +287,18 @@ void bhv_mario_update(void) {
 
     vec3f_add(test, pos);
     mtxf_mul_vec3f(gGravityInverseMatrix, test);
-    mtxf_mul_vec3f(gGravityTransformMatrix, test);
-    vec3f_add(test, gMarioState->pos);
     
-    print_text_fmt_int(20,20,"Z %d",(s32)test[2]);
-    print_text_fmt_int(20,40,"Y %d",(s32)test[1]);
-    print_text_fmt_int(20,60,"X %d",(s32)test[0]);
+    print_text_fmt_int(20,20,"Z %d",(s32)(up[2]*100));
+    print_text_fmt_int(20,40,"Y %d",(s32)(up[1]*100));
+    print_text_fmt_int(20,60,"X %d",(s32)(up[0]*100));
+    print_text_fmt_int(20,80,"GRAV");
     
     //vec3f_add(test, gMarioState->pos);
     
     print_text_fmt_int(100,20,"Z %d",(s32)(test[2] - gMarioState->pos[2]));
     print_text_fmt_int(100,40,"Y %d",(s32)(test[1] - gMarioState->pos[1]));
     print_text_fmt_int(100,60,"X %d",(s32)(test[0] - gMarioState->pos[0]));
-    
-    print_text_fmt_int(20,80,"YAW %d",(s32)gMarioState->faceAngle[1]);
+    print_text_fmt_int(100,80,"OFFSET");
     
     obj = spawn_object(gCurrentObject, MODEL_STAR, bhvSmallParticle);
     obj_set_pos(obj,test[0],test[1],test[2]);

@@ -541,7 +541,8 @@ void create_gravity_matrices(Vec3f up) {
     Vec3f xColumn, yColumn, zColumn, forward;
     
     // Creates matrix that rotates from 0,1,0 to gravity vector
-    vec3f_set(forward, sins(gMarioState->faceAngle[1]), -sign(up[1]) * (sins(gMarioState->faceAngle[1])*up[0] + coss(gMarioState->faceAngle[1])*up[2]), coss(gMarioState->faceAngle[1]));
+    //vec3f_set(forward, sins(gMarioState->faceAngle[1]), -sign(up[1]) * (sins(gMarioState->faceAngle[1])*up[0] + coss(gMarioState->faceAngle[1])*up[2]), coss(gMarioState->faceAngle[1]));
+    vec3f_set(forward, 0, -sign(up[1]) * up[2], 1);
 
     vec3f_normalize(forward);
         

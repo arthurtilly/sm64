@@ -21,8 +21,8 @@ s32 unused8038BE90;
  * Partitions for course and object surfaces. The arrays represent
  * the 16x16 cells that each level is split into.
  */
-SpatialPartitionCell gStaticSurfacePartition[16][16];
-SpatialPartitionCell gDynamicSurfacePartition[16][16];
+SpatialPartitionCell gStaticSurfacePartition;
+SpatialPartitionCell gDynamicSurfacePartition;
 
 /**
  * Pools of data to contain either surface nodes or surfaces.
@@ -80,25 +80,12 @@ static struct Surface *alloc_surface(void) {
 }
 
 /**
- * Iterates through the entire partition, clearing the surfaces.
- */
-static void clear_spatial_partition(SpatialPartitionCell *cells) {
-    register s32 i = 16 * 16;
-
-    while (i--) {
-        (*cells)[SPATIAL_PARTITION_FLOORS].next = NULL;
-        (*cells)[SPATIAL_PARTITION_CEILS].next = NULL;
-        (*cells)[SPATIAL_PARTITION_WALLS].next = NULL;
-
-        cells++;
-    }
-}
-
-/**
  * Clears the static (level) surface partitions for new use.
  */
 static void clear_static_surfaces(void) {
-    clear_spatial_partition(&gStaticSurfacePartition[0][0]);
+    gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next = NULL;
+    gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next = NULL;
+    gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next = NULL;
 }
 
 /**
@@ -138,9 +125,9 @@ static void add_surface_to_cell(s16 dynamic, s16 cellX, s16 cellZ, struct Surfac
     newNode->surface = surface;
 
     if (dynamic) {
-        list = &gDynamicSurfacePartition[cellZ][cellX][listIndex];
+        list = &gDynamicSurfacePartition[listIndex];
     } else {
-        list = &gStaticSurfacePartition[cellZ][cellX][listIndex];
+        list = &gStaticSurfacePartition[listIndex];
     }
 
     // Loop until we find the appropriate place for the surface in the list.
@@ -590,7 +577,9 @@ void clear_dynamic_surfaces(void) {
         gSurfacesAllocated = gNumStaticSurfaces;
         gSurfaceNodesAllocated = gNumStaticSurfaceNodes;
 
-        clear_spatial_partition(&gDynamicSurfacePartition[0][0]);
+        gDynamicSurfacePartition[SPATIAL_PARTITION_FLOORS].next = NULL;
+        gDynamicSurfacePartition[SPATIAL_PARTITION_CEILS].next = NULL;
+        gDynamicSurfacePartition[SPATIAL_PARTITION_WALLS].next = NULL;
     }
 }
 
