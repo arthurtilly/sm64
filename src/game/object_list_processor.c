@@ -19,6 +19,7 @@
 #include "engine/surface_load.h"
 #include "object_list_processor.h"
 #include "mario.h"
+#include "engine/math_util.h"
 
 
 /**
@@ -267,6 +268,42 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
+    Vec3f test, up, pos;
+    struct Object *obj;
+    
+    vec3f_set(up,0.5,-0.3,-1);
+    vec3f_normalize(up);
+    vec3f_set(pos, -gMarioState->pos[0], -gMarioState->pos[1], -gMarioState->pos[2]);
+    
+    create_gravity_matrices(up);
+    
+    vec3f_copy(test,gMarioState->pos);
+    if (gMarioState->controller->buttonDown & B_BUTTON)
+        test[0] += 300;
+    if (gMarioState->controller->buttonDown & Z_TRIG)
+        test[1] += 300;
+    if (gMarioState->controller->buttonDown & L_TRIG)
+        test[2] += 300;
+
+    vec3f_add(test, pos);
+    mtxf_mul_vec3f(gGravityInverseMatrix, test);
+    mtxf_mul_vec3f(gGravityTransformMatrix, test);
+    vec3f_add(test, gMarioState->pos);
+    
+    print_text_fmt_int(20,20,"Z %d",(s32)test[2]);
+    print_text_fmt_int(20,40,"Y %d",(s32)test[1]);
+    print_text_fmt_int(20,60,"X %d",(s32)test[0]);
+    
+    //vec3f_add(test, gMarioState->pos);
+    
+    print_text_fmt_int(100,20,"Z %d",(s32)(test[2] - gMarioState->pos[2]));
+    print_text_fmt_int(100,40,"Y %d",(s32)(test[1] - gMarioState->pos[1]));
+    print_text_fmt_int(100,60,"X %d",(s32)(test[0] - gMarioState->pos[0]));
+    
+    print_text_fmt_int(20,80,"YAW %d",(s32)gMarioState->faceAngle[1]);
+    
+    obj = spawn_object(gCurrentObject, MODEL_STAR, bhvSmallParticle);
+    obj_set_pos(obj,test[0],test[1],test[2]);
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;

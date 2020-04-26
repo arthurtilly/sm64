@@ -545,10 +545,7 @@ const BehaviorScript bhvSmallParticle[] = {
     BEGIN(OBJ_LIST_UNIMPORTANT),
     BILLBOARD(),
     OR_INT(oFlags, OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE),
-    CALL_NATIVE(bhv_particle_init),
-    BEGIN_REPEAT(70),
-        CALL_NATIVE(bhv_particle_loop),
-    END_REPEAT(),
+    DELAY(1),
     DEACTIVATE(),
 };
 

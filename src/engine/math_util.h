@@ -29,6 +29,10 @@ extern f32 gCosineTable[];
 
 #define sqr(x) ((x) * (x))
 
+extern Mat4 gGravityTransformMatrix;
+extern Mat4 gGravityInverseMatrix;
+extern Mat4 gNormalTransformMatrix;
+
 void *vec3f_copy(Vec3f dest, Vec3f src);
 void *vec3f_set(Vec3f dest, f32 x, f32 y, f32 z);
 void *vec3f_add(Vec3f dest, Vec3f a);
@@ -52,9 +56,12 @@ void mtxf_rotate_xyz_and_translate(f32 mtx[4][4], Vec3f b, Vec3s c);
 void mtxf_billboard(f32 mtx1[4][4], f32 mtx2[4][4], Vec3f c, s16 d);
 void mtxf_align_terrain_normal(f32 mtx[4][4], Vec3f b, Vec3f c, s16 d);
 void mtxf_align_terrain_triangle(f32 mtx[4][4], Vec3f b, s16 c, f32 d);
+void create_gravity_transform_matrix(Vec3f up);
+void create_gravity_matrices(Vec3f up);
 void mtxf_mul(f32 dest[4][4], f32 a[4][4], f32 b[4][4]);
 void mtxf_scale_vec3f(f32 a[4][4], f32 b[4][4], Vec3f c);
 void mtxf_mul_vec3s(f32 a[4][4], Vec3s b);
+void mtxf_mul_vec3f(f32 a[4][4], Vec3f b);
 void mtxf_to_mtx(Mtx *a, f32 b[4][4]);
 void mtxf_rotate_xy(Mtx *a, s16 b);
 void get_pos_from_transform_mtx(Vec3f a, f32 b[4][4], f32 c[4][4]);

@@ -6,11 +6,16 @@
 #include "surface_collision.h"
 
 #include "trig_tables.inc.c"
+#include "game/mario.h"
+#include "game/level_update.h"
 
 // Variables for a spline curve animation (used for the flight path in the grand star cutscene)
 Vec4s *gSplineKeyframe;
 float gSplineKeyframeFraction;
 int gSplineState;
+Mat4 gGravityTransformMatrix;
+Mat4 gGravityInverseMatrix;
+Mat4 gNormalTransformMatrix;
 
 // These functions have bogus return values.
 // Disable the compiler warning.
@@ -472,6 +477,110 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
     mtx[3][3] = 1;
 }
 
+static f32 det_mat2(f32 a, f32 b, f32 c, f32 d) {
+    return a*d - b*c;
+}
+
+#define gt gGravityTransformMatrix
+#define gt_i gGravityInverseMatrix
+
+void create_gravity_transform_matrix(Vec3f up) { // up must be normalized
+    Vec3f pos;
+    Mat4 tl;
+    //f32 a,b,c,d,e,f,g,h,i;
+    
+    vec3f_set(pos, -gMarioObject->oPosX, -gMarioObject->oPosY, -gMarioObject->oPosZ);
+
+/**
+    a = gt_i[0][0];
+    b = gt_i[0][1];
+    c = gt_i[0][2];
+    d = gt_i[1][0];
+    e = gt_i[1][1];
+    f = gt_i[1][2];
+    g = gt_i[2][0];
+    h = gt_i[2][1];
+    i = gt_i[2][2];
+    print_text_fmt_int(100,150,"DET %d",(s32)((a*e*i + b*f*g + c*d*h - c*e*g - a*f*h - b*d*i)*100));
+    **/
+
+    // Create inverse of the matrix that rotates from 0,1,0 to gravity vector
+    // This matrix does the opposite: rotates from gravity vector to 0,1,0
+    gt[0][0] = -det_mat2(gt_i[1][1],gt_i[2][1],gt_i[1][2],gt_i[2][2]);
+    gt[0][1] = det_mat2(gt_i[0][1],gt_i[2][1],gt_i[0][2],gt_i[2][2]);
+    gt[0][2] = -det_mat2(gt_i[0][1],gt_i[1][1],gt_i[0][2],gt_i[1][2]);
+    gt[0][3] = 0;
+    
+    gt[1][0] = det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][2],gt_i[2][2]);
+    gt[1][1] = -det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][2],gt_i[2][2]);
+    gt[1][2] = det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][2],gt_i[1][2]);
+    gt[1][3] = 0;
+    
+    gt[2][0] = -det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][1],gt_i[2][1]);
+    gt[2][1] = det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][1],gt_i[2][1]);
+    gt[2][2] = -det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][1],gt_i[1][1]);
+    gt[2][3] = 0;
+    
+    gt[3][0] = 0;
+    gt[3][1] = 0;
+    gt[3][2] = 0;
+    gt[3][3] = 1;
+    
+    mtxf_copy(gNormalTransformMatrix, gt);
+    
+    // Add translation from Mario pos to origin
+    mtxf_translate(tl, pos);
+    mtxf_mul(gt, tl, gt);
+}
+
+s32 sign(f32 a) {
+    return (a>=0 ? 1 : -1);
+}
+
+void create_gravity_matrices(Vec3f up) {
+    Vec3f xColumn, yColumn, zColumn, forward;
+    
+    // Creates matrix that rotates from 0,1,0 to gravity vector
+    vec3f_set(forward, sins(gMarioState->faceAngle[1]), -sign(up[1]) * (sins(gMarioState->faceAngle[1])*up[0] + coss(gMarioState->faceAngle[1])*up[2]), coss(gMarioState->faceAngle[1]));
+
+    vec3f_normalize(forward);
+        
+    vec3f_cross(xColumn, up, forward);
+    vec3f_normalize(xColumn);
+    vec3f_cross(zColumn, xColumn, up);
+    vec3f_normalize(zColumn);
+    
+    vec3f_set(yColumn, up[0], up[1], up[2]);
+    //if (up[1] <= 0) vec3f_set(yColumn, -yColumn[0], -yColumn[1], -yColumn[2]);
+    
+    gt_i[0][0] = xColumn[0];
+    gt_i[0][1] = xColumn[1];
+    gt_i[0][2] = xColumn[2];
+    gt_i[3][0] = 0;
+
+    gt_i[1][0] = yColumn[0];
+    gt_i[1][1] = yColumn[1];
+    gt_i[1][2] = yColumn[2];
+    gt_i[3][1] = 0;
+
+    gt_i[2][0] = zColumn[0];
+    gt_i[2][1] = zColumn[1];
+    gt_i[2][2] = zColumn[2];
+    gt_i[3][2] = 0;
+
+    gt_i[0][3] = 0;
+    gt_i[1][3] = 0;
+    gt_i[2][3] = 0;
+    gt_i[3][3] = 1;
+    
+    create_gravity_transform_matrix(up);
+    
+    // Add translation from origin to Mario pos
+    gt_i[3][0] = gMarioObject->oPosX;
+    gt_i[3][1] = gMarioObject->oPosY;
+    gt_i[3][2] = gMarioObject->oPosZ;
+}
+
 /**
  * Sets matrix 'dest' to the matrix product b * a assuming they are both
  * transformation matrices with a w-component of 1. Since the bottom row
@@ -548,6 +657,16 @@ void mtxf_mul_vec3s(Mat4 mtx, Vec3s b) {
     register f32 y = b[1];
     register f32 z = b[2];
 
+    b[0] = x * mtx[0][0] + y * mtx[1][0] + z * mtx[2][0] + mtx[3][0];
+    b[1] = x * mtx[0][1] + y * mtx[1][1] + z * mtx[2][1] + mtx[3][1];
+    b[2] = x * mtx[0][2] + y * mtx[1][2] + z * mtx[2][2] + mtx[3][2];
+}
+
+void mtxf_mul_vec3f(Mat4 mtx, Vec3f b) {
+    f32 x = b[0];
+    f32 y = b[1];
+    f32 z = b[2];
+    
     b[0] = x * mtx[0][0] + y * mtx[1][0] + z * mtx[2][0] + mtx[3][0];
     b[1] = x * mtx[0][1] + y * mtx[1][1] + z * mtx[2][1] + mtx[3][1];
     b[2] = x * mtx[0][2] + y * mtx[1][2] + z * mtx[2][2] + mtx[3][2];
