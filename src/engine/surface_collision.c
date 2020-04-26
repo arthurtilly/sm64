@@ -9,15 +9,29 @@
 #include "surface_collision.h"
 #include "surface_load.h"
 #include "game/object_list_processor.h"
+#include "engine/math_util.h"
 
 /**************************************************
  *                      WALLS                      *
  **************************************************/
-
+extern s32 gLag;
 /**
  * Iterate through the list of walls until all walls are checked and
  * have given their wall push.
  */
+ 
+
+void transform_surface_vars(struct SurfaceNode *surfaceNode) {
+    Vec3f lag;
+    while (surfaceNode != NULL) {
+        surfaceNode = surfaceNode->next;
+        vec3f_set(lag, 4,8,2);
+        mtxf_mul_vec3f(gGravityTransformMatrix,lag);
+        mtxf_mul_vec3f(gGravityInverseMatrix,lag);
+        mtxf_mul_vec3f(gGravityTransformMatrix,lag);
+    }
+}
+
 static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
                                           struct WallCollisionData *data) {
 #ifdef VERSION_EU
@@ -48,9 +62,6 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
         if (y < surf->lowerY || y > surf->upperY) {
             continue;
         }
-        
-        if ((x-surf->vertex1[0])*(x-surf->vertex1[0]) + (z-surf->vertex1[2])*(z-surf->vertex1[2]) > 4000000.f)
-            continue;
 
         offset = surf->normal.x * x + surf->normal.y * y + surf->normal.z * z + surf->originOffset;
 
@@ -243,9 +254,6 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
         z1 = surf->vertex1[2];
         z2 = surf->vertex2[2];
         x2 = surf->vertex2[0];
-        
-        if ((x-x1)*(x-x1) + (z-z1)*(z-z1) > 4000000.f)
-            continue;
 
         // Checking if point is in bounds of the triangle laterally.
         if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) > 0) {
@@ -417,9 +425,6 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
         z1 = surf->vertex1[2];
         x2 = surf->vertex2[0];
         z2 = surf->vertex2[2];
-        
-        if ((x-x1)*(x-x1) + (z-z1)*(z-z1) > 4000000.f)
-            continue;
 
         // Check that the point is within the triangle bounds.
         if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) < 0) {

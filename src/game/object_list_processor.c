@@ -265,6 +265,8 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 /**
  * Mario's primary behavior update function.
  */
+extern void transform_surface_vars(struct SurfaceNode *);
+ 
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
@@ -302,6 +304,10 @@ void bhv_mario_update(void) {
     
     obj = spawn_object(gCurrentObject, MODEL_STAR, bhvSmallParticle);
     obj_set_pos(obj,test[0],test[1],test[2]);
+    
+    transform_surface_vars(&gStaticSurfacePartition[0]);
+    transform_surface_vars(&gStaticSurfacePartition[1]);
+    transform_surface_vars(&gStaticSurfacePartition[2]);
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
