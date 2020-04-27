@@ -1070,7 +1070,6 @@ static s32 act_caught_in_whirlpool(struct MarioState *m) {
     m->faceAngle[1] = atan2s(dz, dx) + 0x8000;
 
     set_mario_animation(m, MARIO_ANIM_GENERAL_FALL);
-    vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
     vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
 
     return FALSE;

@@ -14,7 +14,7 @@
 /**************************************************
  *                      WALLS                      *
  **************************************************/
-extern s32 gLag;
+extern s32 gSurfacesCategorized;
 /**
  * Iterate through the list of walls until all walls are checked and
  * have given their wall push.
@@ -23,17 +23,29 @@ extern s32 gLag;
 
 void transform_surface_vars(struct SurfaceNode *surfaceNode) {
     Vec3f lag;
+    struct Surface *surf;
     while (surfaceNode != NULL) {
+        surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
+        /**
         vec3f_set(lag, 4,8,2);
         mtxf_mul_vec3f(gGravityTransformMatrix,lag);
         mtxf_mul_vec3f(gGravityInverseMatrix,lag);
         mtxf_mul_vec3f(gGravityTransformMatrix,lag);
+        **/
+        if (surf->normal.y > 0.01) {
+            surf->orientation = SURF_FLOOR;
+        } else if (surf->normal.y < -0.01) {
+            surf->orientation = SURF_CEILING;
+        } else {
+            surf->orientation = SURF_WALL;
+        }
+    gSurfacesCategorized = TRUE;
     }
 }
 
 static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
-                                          struct WallCollisionData *data) {
+                                          struct WallCollisionData *data, u32 dynamic) {
 #ifdef VERSION_EU
     UNUSED u8 pad;
 #endif
@@ -47,6 +59,7 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
     register f32 w1, w2, w3;
     register f32 y1, y2, y3;
     s32 numCols = 0;
+    s32 listIndex;
 
     // Max collision radius = 200
     if (radius > 200.0f) {
@@ -57,6 +70,9 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
     while (surfaceNode != NULL) {
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
+        
+        if (surf->orientation != SURF_WALL)
+            continue;
 
         // Exclude a large number of walls immediately to optimize.
         if (y < surf->lowerY || y > surf->upperY) {
@@ -75,7 +91,7 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
         //! (Quantum Tunneling) Due to issues with the vertices walls choose and
         //  the fact they are floating point, certain floating point positions
         //  along the seam of two walls may collide with neither wall or both walls.
-        if (surf->flags & SURFACE_FLAG_X_PROJECTION) {
+        if (surf->normal.x < -0.707 || surf->normal.x > 0.707) {
             w1 = -surf->vertex1[2];            w2 = -surf->vertex2[2];            w3 = -surf->vertex3[2];
             y1 = surf->vertex1[1];            y2 = surf->vertex2[1];            y3 = surf->vertex3[1];
 
@@ -154,8 +170,6 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
             }
         }
 
-        //! (Wall Overlaps) Because this doesn't update the x and z local variables,
-        //  multiple walls can push mario more than is required.
         data->x += surf->normal.x * (radius - offset);
         x += surf->normal.x * (radius - offset);
         data->z += surf->normal.z * (radius - offset);
@@ -170,6 +184,8 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
 
         numCols++;
     }
+    
+    gSurfacesCategorized = TRUE;
 
     return numCols;
 }
@@ -218,13 +234,11 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
         return numCollisions;
     }
 
-    // Check for surfaces belonging to objects.
-    node = gDynamicSurfacePartition[SPATIAL_PARTITION_WALLS].next;
-    numCollisions += find_wall_collisions_from_list(node, colData);
+    node = gDynamicSurfaces.next;
+    numCollisions += find_wall_collisions_from_list(node, colData, TRUE);
 
-    // Check for surfaces that are a part of level geometry.
-    node = gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next;
-    numCollisions += find_wall_collisions_from_list(node, colData);
+    node = gStaticSurfaces.next;
+    numCollisions += find_wall_collisions_from_list(node, colData, FALSE);
 
     // Increment the debug tracker.
     gNumCalls.wall += 1;
@@ -251,6 +265,9 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
     while (surfaceNode != NULL) {
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
+        
+        if (surf->orientation != SURF_CEILING)
+            continue;
 
         x1 = surf->vertex1[0];
         z1 = surf->vertex1[2];
@@ -305,10 +322,11 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
             if (y - (height - -78.0f) > 0.0f) {
                 continue;
             }
-
-            *pheight = height;
-            ceil = surf;
-            break;
+            
+            if (height < *pheight) {
+                *pheight = height;
+                ceil = surf;
+            }
         }
     }
 
@@ -344,11 +362,11 @@ f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface **pceil) {
     }
 
     // Check for surfaces belonging to objects.
-    surfaceList = gDynamicSurfacePartition[SPATIAL_PARTITION_CEILS].next;
+    surfaceList = gDynamicSurfaces.next;
     dynamicCeil = find_ceil_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next;
+    surfaceList = gStaticSurfaces.next;
     ceil = find_ceil_from_list(surfaceList, x, y, z, &height);
 
     if (dynamicHeight < height) {
@@ -422,6 +440,9 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
     while (surfaceNode != NULL) {
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
+        
+        if (surf->orientation != SURF_FLOOR)
+            continue;
 
         x1 = surf->vertex1[0];
         z1 = surf->vertex1[2];
@@ -472,9 +493,10 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
             continue;
         }
 
-        *pheight = height;
-        floor = surf;
-        break;
+        if (height > *pheight) {
+            *pheight = height;
+            floor = surf;
+        }
     }
 
     //! (Surface Cucking) Since only the first floor is returned and not the highest,
@@ -522,11 +544,11 @@ f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor) {
     }
 
     // Check for surfaces belonging to objects.
-    surfaceList = gDynamicSurfacePartition[SPATIAL_PARTITION_FLOORS].next;
+    surfaceList = gDynamicSurfaces.next;
     dynamicFloor = find_floor_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next;
+    surfaceList = gStaticSurfaces.next;
     floor = find_floor_from_list(surfaceList, x, y, z, &height);
 
     // To prevent the Merry-Go-Round room from loading when Mario passes above the hole that leads

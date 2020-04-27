@@ -236,6 +236,8 @@ void copy_mario_state_to_object(void) {
     gCurrentObject->oPosX = gMarioStates[i].pos[0];
     gCurrentObject->oPosY = gMarioStates[i].pos[1];
     gCurrentObject->oPosZ = gMarioStates[i].pos[2];
+    
+    vec3f_copy(gCurrentObject->header.gfx.pos, gMarioStates[i].pos);
 
     gCurrentObject->oMoveAnglePitch = gCurrentObject->header.gfx.angle[0];
     gCurrentObject->oMoveAngleYaw = gCurrentObject->header.gfx.angle[1];
@@ -266,12 +268,16 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
  * Mario's primary behavior update function.
  */
 extern void transform_surface_vars(struct SurfaceNode *);
+
+s32 gSurfacesCategorized;
  
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
     Vec3f test, up, pos;
     struct Object *obj;
+    
+    gSurfacesCategorized = FALSE;
     
     vec3f_set(up,0,1,0);
     vec3f_normalize(up);
@@ -304,10 +310,8 @@ void bhv_mario_update(void) {
     
     obj = spawn_object(gCurrentObject, MODEL_STAR, bhvSmallParticle);
     obj_set_pos(obj,test[0],test[1],test[2]);
-    
-    transform_surface_vars(gStaticSurfacePartition[0].next);
-    transform_surface_vars(gStaticSurfacePartition[1].next);
-    transform_surface_vars(gStaticSurfacePartition[2].next);
+    transform_surface_vars(gStaticSurfaces.next);
+    transform_surface_vars(gDynamicSurfaces.next);
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;

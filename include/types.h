@@ -224,7 +224,8 @@ struct Waypoint
 
 struct Surface
 {
-    /*0x00*/ s16 type;
+    /*0x00*/ u8 type;
+    s8 orientation;
     /*0x02*/ s16 force;
     /*0x04*/ s8 flags;
     /*0x05*/ s8 room;

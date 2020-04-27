@@ -17,12 +17,8 @@
 
 s32 unused8038BE90;
 
-/**
- * Partitions for course and object surfaces. The arrays represent
- * the 16x16 cells that each level is split into.
- */
-SpatialPartitionCell gStaticSurfacePartition;
-SpatialPartitionCell gDynamicSurfacePartition;
+struct SurfaceNode gStaticSurfaces;
+struct SurfaceNode gDynamicSurfaces;
 
 /**
  * Pools of data to contain either surface nodes or surfaces.
@@ -83,9 +79,7 @@ static struct Surface *alloc_surface(void) {
  * Clears the static (level) surface partitions for new use.
  */
 static void clear_static_surfaces(void) {
-    gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next = NULL;
-    gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next = NULL;
-    gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next = NULL;
+    gStaticSurfaces.next = NULL;
 }
 
 /**
@@ -94,11 +88,7 @@ static void clear_static_surfaces(void) {
 static void add_surface_to_cell(s16 dynamic, s16 cellX, s16 cellZ, struct Surface *surface) {
     struct SurfaceNode *newNode = alloc_surface_node();
     struct SurfaceNode *list;
-    s16 surfacePriority;
-    s16 priority;
-    s16 sortDir;
-    s16 listIndex;
-
+/**
     if (surface->normal.y > 0.01) {
         listIndex = SPATIAL_PARTITION_FLOORS;
         sortDir = 1; // highest to lowest, then insertion order
@@ -113,32 +103,13 @@ static void add_surface_to_cell(s16 dynamic, s16 cellX, s16 cellZ, struct Surfac
             surface->flags |= SURFACE_FLAG_X_PROJECTION;
         }
     }
-
-    //! (Surface Cucking) Surfaces are sorted by the height of their first
-    //  vertex. Since vertices aren't ordered by height, this causes many
-    //  lower triangles to be sorted higher. This worsens surface cucking since
-    //  many functions only use the first triangle in surface order that fits,
-    //  missing higher surfaces.
-    //  upperY would be a better sort method.
-    surfacePriority = surface->vertex1[1] * sortDir;
-
+**/
     newNode->surface = surface;
 
     if (dynamic) {
-        list = &gDynamicSurfacePartition[listIndex];
+        list = &gDynamicSurfaces;
     } else {
-        list = &gStaticSurfacePartition[listIndex];
-    }
-
-    // Loop until we find the appropriate place for the surface in the list.
-    while (list->next != NULL) {
-        priority = list->next->surface->vertex1[1] * sortDir;
-
-        if (surfacePriority > priority) {
-            break;
-        }
-
-        list = list->next;
+        list = &gStaticSurfaces;
     }
 
     newNode->next = list->next;
@@ -577,9 +548,7 @@ void clear_dynamic_surfaces(void) {
         gSurfacesAllocated = gNumStaticSurfaces;
         gSurfaceNodesAllocated = gNumStaticSurfaceNodes;
 
-        gDynamicSurfacePartition[SPATIAL_PARTITION_FLOORS].next = NULL;
-        gDynamicSurfacePartition[SPATIAL_PARTITION_CEILS].next = NULL;
-        gDynamicSurfacePartition[SPATIAL_PARTITION_WALLS].next = NULL;
+        gDynamicSurfaces.next = NULL;
     }
 }
 

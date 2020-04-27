@@ -9,20 +9,19 @@ struct SurfaceNode
     struct Surface *surface;
 };
 
-enum
+enum SurfaceTypes
 {
-    SPATIAL_PARTITION_FLOORS,
-    SPATIAL_PARTITION_CEILS,
-    SPATIAL_PARTITION_WALLS
+    SURF_FLOOR,
+    SURF_CEILING,
+    SURF_WALL
 };
-
-typedef struct SurfaceNode SpatialPartitionCell[3];
 
 // Needed for bs bss reordering memes.
 extern s32 unused8038BE90;
 
-extern SpatialPartitionCell gStaticSurfacePartition;
-extern SpatialPartitionCell gDynamicSurfacePartition;
+extern struct SurfaceNode gStaticSurfaces;
+extern struct SurfaceNode gDynamicSurfaces;
+
 extern struct SurfaceNode *sSurfaceNodePool;
 extern struct Surface *sSurfacePool;
 extern s16 sSurfacePoolSize;

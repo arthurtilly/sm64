@@ -889,7 +889,6 @@ s32 act_ground_pound(struct MarioState *m) {
             if (m->pos[1] + yOffset + 160.0f < m->ceilHeight) {
                 m->pos[1] += yOffset;
                 m->peakHeight = m->pos[1];
-                vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
             }
         }
 
@@ -1792,7 +1791,6 @@ s32 act_riding_hoot(struct MarioState *m) {
     }
 
     vec3f_set(m->vel, 0.0f, 0.0f, 0.0f);
-    vec3f_set(m->marioObj->header.gfx.pos, m->pos[0], m->pos[1], m->pos[2]);
     vec3s_set(m->marioObj->header.gfx.angle, 0, 0x4000 - m->faceAngle[1], 0);
     return FALSE;
 }
