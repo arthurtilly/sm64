@@ -506,19 +506,19 @@ void create_gravity_transform_matrix(Vec3f up) { // up must be normalized
 
     // Create inverse of the matrix that rotates from 0,1,0 to gravity vector
     // This matrix does the opposite: rotates from gravity vector to 0,1,0
-    gt[0][0] = -det_mat2(gt_i[1][1],gt_i[2][1],gt_i[1][2],gt_i[2][2]);
-    gt[0][1] = det_mat2(gt_i[0][1],gt_i[2][1],gt_i[0][2],gt_i[2][2]);
-    gt[0][2] = -det_mat2(gt_i[0][1],gt_i[1][1],gt_i[0][2],gt_i[1][2]);
+    gt[0][0] = det_mat2(gt_i[1][1],gt_i[2][1],gt_i[1][2],gt_i[2][2]);
+    gt[0][1] = -det_mat2(gt_i[0][1],gt_i[2][1],gt_i[0][2],gt_i[2][2]);
+    gt[0][2] = det_mat2(gt_i[0][1],gt_i[1][1],gt_i[0][2],gt_i[1][2]);
     gt[0][3] = 0;
     
-    gt[1][0] = det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][2],gt_i[2][2]);
-    gt[1][1] = -det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][2],gt_i[2][2]);
-    gt[1][2] = det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][2],gt_i[1][2]);
+    gt[1][0] = -det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][2],gt_i[2][2]);
+    gt[1][1] = det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][2],gt_i[2][2]);
+    gt[1][2] = -det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][2],gt_i[1][2]);
     gt[1][3] = 0;
     
-    gt[2][0] = -det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][1],gt_i[2][1]);
-    gt[2][1] = det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][1],gt_i[2][1]);
-    gt[2][2] = -det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][1],gt_i[1][1]);
+    gt[2][0] = det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][1],gt_i[2][1]);
+    gt[2][1] = -det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][1],gt_i[2][1]);
+    gt[2][2] = det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][1],gt_i[1][1]);
     gt[2][3] = 0;
     
     gt[3][0] = 0;

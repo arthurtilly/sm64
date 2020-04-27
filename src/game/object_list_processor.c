@@ -270,6 +270,7 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 extern void transform_surface_vars(struct SurfaceNode *);
 
 s32 gSurfacesCategorized;
+Vec3f gMarioPosOffset;
  
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
@@ -281,7 +282,9 @@ void bhv_mario_update(void) {
     
     vec3f_set(up,0,1,0);
     vec3f_normalize(up);
-    vec3f_set(pos, -gMarioState->pos[0], -gMarioState->pos[1], -gMarioState->pos[2]);
+    vec3f_set(pos, -gMarioState->pos[0], -gMarioState->pos[1], -gMarioState->pos[2]);\
+    
+    vec3f_set(gMarioPosOffset,0,0,0);
     
     create_gravity_matrices(up);
     
