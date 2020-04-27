@@ -20,6 +20,8 @@ s32 unused8038BE90;
 struct SurfaceNode gStaticSurfaces;
 struct SurfaceNode gDynamicSurfaces;
 
+SpatialPartitionCell gStaticSurfacePartition;
+
 /**
  * Pools of data to contain either surface nodes or surfaces.
  */
@@ -36,7 +38,7 @@ u8 unused8038EEA8[0x30];
 /**
  * Allocate the part of the surface node pool to contain a surface node.
  */
-static struct SurfaceNode *alloc_surface_node(void) {
+struct SurfaceNode *alloc_surface_node(void) {
     struct SurfaceNode *node = &sSurfaceNodePool[gSurfaceNodesAllocated];
     gSurfaceNodesAllocated++;
 
@@ -55,7 +57,7 @@ static struct SurfaceNode *alloc_surface_node(void) {
  * Allocate the part of the surface pool to contain a surface and
  * initialize the surface.
  */
-static struct Surface *alloc_surface(void) {
+struct Surface *alloc_surface(void) {
 
     struct Surface *surface = &sSurfacePool[gSurfacesAllocated];
     gSurfacesAllocated++;
@@ -80,40 +82,6 @@ static struct Surface *alloc_surface(void) {
  */
 static void clear_static_surfaces(void) {
     gStaticSurfaces.next = NULL;
-}
-
-/**
- * Add a surface to the correct cell list of surfaces.
- */
-static void add_surface_to_cell(s16 dynamic, s16 cellX, s16 cellZ, struct Surface *surface) {
-    struct SurfaceNode *newNode = alloc_surface_node();
-    struct SurfaceNode *list;
-/**
-    if (surface->normal.y > 0.01) {
-        listIndex = SPATIAL_PARTITION_FLOORS;
-        sortDir = 1; // highest to lowest, then insertion order
-    } else if (surface->normal.y < -0.01) {
-        listIndex = SPATIAL_PARTITION_CEILS;
-        sortDir = -1; // lowest to highest, then insertion order
-    } else {
-        listIndex = SPATIAL_PARTITION_WALLS;
-        sortDir = 0; // insertion order
-
-        if (surface->normal.x < -0.707 || surface->normal.x > 0.707) {
-            surface->flags |= SURFACE_FLAG_X_PROJECTION;
-        }
-    }
-**/
-    newNode->surface = surface;
-
-    if (dynamic) {
-        list = &gDynamicSurfaces;
-    } else {
-        list = &gStaticSurfaces;
-    }
-
-    newNode->next = list->next;
-    list->next = newNode;
 }
 
 /**
@@ -214,31 +182,19 @@ static s16 upper_cell_index(s16 t) {
  * cells.
  */
 static void add_surface(struct Surface *surface, s32 dynamic) {
-    // minY/maxY maybe? s32 instead of s16, though.
-    UNUSED s32 unused1, unused2;
-    s16 minX, minZ, maxX, maxZ;
+    struct SurfaceNode *newNode = alloc_surface_node();
+    struct SurfaceNode *list;
 
-    s16 minCellX, minCellZ, maxCellX, maxCellZ;
+    newNode->surface = surface;
 
-    s16 cellZ, cellX;
-    // cellY maybe? s32 instead of s16, though.
-    UNUSED s32 unused3 = 0;
-
-    minX = min_3(surface->vertex1[0], surface->vertex2[0], surface->vertex3[0]);
-    minZ = min_3(surface->vertex1[2], surface->vertex2[2], surface->vertex3[2]);
-    maxX = max_3(surface->vertex1[0], surface->vertex2[0], surface->vertex3[0]);
-    maxZ = max_3(surface->vertex1[2], surface->vertex2[2], surface->vertex3[2]);
-
-    minCellX = lower_cell_index(minX);
-    maxCellX = upper_cell_index(maxX);
-    minCellZ = lower_cell_index(minZ);
-    maxCellZ = upper_cell_index(maxZ);
-
-    for (cellZ = minCellZ; cellZ <= maxCellZ; cellZ++) {
-        for (cellX = minCellX; cellX <= maxCellX; cellX++) {
-            add_surface_to_cell(dynamic, cellX, cellZ, surface);
-        }
+    if (dynamic) {
+        list = &gDynamicSurfaces;
+    } else {
+        list = &gStaticSurfaces;
     }
+
+    newNode->next = list->next;
+    list->next = newNode;
 }
 
 static void unused_80382B6C(void) {
@@ -325,9 +281,6 @@ static struct Surface *read_surface_data(s16 *vertexData, s16 **vertexIndices) {
     surface->normal.z = nz;
 
     surface->originOffset = -(nx * x1 + ny * y1 + nz * z1);
-
-    surface->lowerY = minY - 5;
-    surface->upperY = maxY + 5;
 
     return surface;
 }
@@ -471,10 +424,10 @@ static void load_environmental_regions(s16 **data) {
 }
 
 /**
- * Allocate some of the main pool for surfaces (2300 surf) and for surface nodes (7000 nodes).
+ * Allocate some of the main pool for surfaces (5000 surf) and for surface nodes (7000 nodes).
  */
 void alloc_surface_pools(void) {
-    sSurfacePoolSize = 2300;
+    sSurfacePoolSize = 5000;
     sSurfaceNodePool = main_pool_alloc(7000 * sizeof(struct SurfaceNode), MEMORY_POOL_LEFT);
     sSurfacePool = main_pool_alloc(sSurfacePoolSize * sizeof(struct Surface), MEMORY_POOL_LEFT);
 
@@ -543,12 +496,15 @@ void load_area_terrain(s16 index, s16 *data, s8 *surfaceRooms, s16 *macroObjects
 /**
  * If not in time stop, clear the surface partitions.
  */
-void clear_dynamic_surfaces(void) {
+void clear_dynamic_and_transformed_surfaces(void) {
     if (!(gTimeStopState & TIME_STOP_ACTIVE)) {
         gSurfacesAllocated = gNumStaticSurfaces;
         gSurfaceNodesAllocated = gNumStaticSurfaceNodes;
 
         gDynamicSurfaces.next = NULL;
+        gStaticSurfacePartition[SURF_FLOOR].next = NULL;
+        gStaticSurfacePartition[SURF_CEILING].next = NULL;
+        gStaticSurfacePartition[SURF_WALL].next = NULL;
     }
 }
 

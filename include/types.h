@@ -224,13 +224,10 @@ struct Waypoint
 
 struct Surface
 {
-    /*0x00*/ u8 type;
-    s8 orientation;
+    /*0x00*/ s16 type;
     /*0x02*/ s16 force;
     /*0x04*/ s8 flags;
     /*0x05*/ s8 room;
-    /*0x06*/ s16 lowerY;
-    /*0x08*/ s16 upperY;
     /*0x0A*/ Vec3s vertex1;
     /*0x10*/ Vec3s vertex2;
     /*0x16*/ Vec3s vertex3;

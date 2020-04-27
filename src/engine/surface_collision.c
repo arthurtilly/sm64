@@ -14,31 +14,66 @@
 /**************************************************
  *                      WALLS                      *
  **************************************************/
-extern s32 gSurfacesCategorized;
+
 /**
  * Iterate through the list of walls until all walls are checked and
  * have given their wall push.
  */
  
 
-void transform_surface_vars(struct SurfaceNode *surfaceNode) {
+void transform_surfaces() {
+    Vec3s v1,v2,v3;
     Vec3f n;
-    struct Surface *surf;
+    struct Surface *surf, *newSurf;
+    struct SurfaceNode *surfaceNode = gStaticSurfaces.next;
+    s32 listIndex;
+    
+    if (gMarioObject == NULL)
+        return;
+    
     while (surfaceNode != NULL) {
+        struct SurfaceNode *newNode = alloc_surface_node();
+        struct SurfaceNode *list;
+        
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
 
         vec3f_copy(n,&surf->normal.x);
+        vec3s_copy(v1,surf->vertex1);
+        vec3s_copy(v2,surf->vertex2);
+        vec3s_copy(v3,surf->vertex3);
         mtxf_mul_vec3f(gNormalTransformMatrix,n);
+        mtxf_mul_vec3s(gGravityTransformMatrix,v1);
+        mtxf_mul_vec3s(gGravityTransformMatrix,v2);
+        mtxf_mul_vec3s(gGravityTransformMatrix,v3);
         
         if (n[1] > 0.01) {
-            surf->orientation = SURF_FLOOR;
+            listIndex = SURF_FLOOR;
         } else if (n[1] < -0.01) {
-            surf->orientation = SURF_CEILING;
+            listIndex = SURF_CEILING;
         } else {
-            surf->orientation = SURF_WALL;
+            listIndex = SURF_WALL;
         }
-    gSurfacesCategorized = TRUE;
+        
+        newSurf = alloc_surface();
+
+        vec3s_copy(newSurf->vertex1, v1);
+        vec3s_copy(newSurf->vertex2, v2);
+        vec3s_copy(newSurf->vertex3, v3);
+        vec3f_copy(&newSurf->normal.x, n);
+
+        newSurf->originOffset = -(n[0] * v1[0] + n[1] * v1[1] + n[2] * v1[2]);
+        newSurf->type = surf->type;
+        newSurf->force = surf->force;
+        newSurf->room = surf->room;
+        newSurf->object = surf->object;
+
+        newNode->surface = newSurf;
+
+        list = &gStaticSurfacePartition[listIndex];
+
+        newNode->next = list->next;
+        list->next = newNode;
     }
 }
 
@@ -56,11 +91,11 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
     Vec3s v1,v2,v3;
     Vec3f n;
     s32 numCols = 0;
-    
-    if (!gCheckingSurfaceCollisionsForCamera) {
-        x -= gMarioState->pos[0];
-        y -= gMarioState->pos[1];
-        z -= gMarioState->pos[2];
+
+    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) {
+        x -= gMarioObject->oPosX;
+        y -= gMarioObject->oPosY;
+        z -= gMarioObject->oPosZ;
     }
 
     // Max collision radius = 200
@@ -77,20 +112,6 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
         vec3s_copy(v1,surf->vertex1);
         vec3s_copy(v2,surf->vertex2);
         vec3s_copy(v3,surf->vertex3);
-        
-        if (!gCheckingSurfaceCollisionsForCamera) {
-            if (surf->orientation != SURF_WALL)
-                continue;
-
-            mtxf_mul_vec3f(gNormalTransformMatrix,n);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v1);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v2);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v3);
-        } else {
-            if ((n[1] > 0.01) || (n[1] < -0.01))
-                continue;
-        }
-        
 
         // Exclude a large number of walls immediately to optimize.
         if (y < (min_3(v1[1],v2[1],v3[1]) - 5) || y > (max_3(v1[1],v2[1],v3[1]) + 5)) {
@@ -193,8 +214,6 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
 
         numCols++;
     }
-    
-    gSurfacesCategorized = TRUE;
 
     return numCols;
 }
@@ -245,7 +264,7 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
     node = gDynamicSurfaces.next;
     numCollisions += find_wall_collisions_from_list(node, colData, TRUE);
 
-    node = gStaticSurfaces.next;
+    node = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SURF_WALL].next : gStaticSurfaces.next);
     numCollisions += find_wall_collisions_from_list(node, colData, FALSE);
 
     // Increment the debug tracker.
@@ -267,11 +286,11 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
     struct Surface *ceil = NULL;
     Vec3s v1, v2, v3;
     Vec3f n;
-    
-    if (!gCheckingSurfaceCollisionsForCamera) {
-        x -= gMarioState->pos[0];
-        y -= gMarioState->pos[1];
-        z -= gMarioState->pos[2];
+
+    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) {
+        x -= gMarioObject->oPosX;
+        y -= gMarioObject->oPosY;
+        z -= gMarioObject->oPosZ;
     }
 
     ceil = NULL;
@@ -285,19 +304,6 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
         vec3s_copy(v1,surf->vertex1);
         vec3s_copy(v2,surf->vertex2);
         vec3s_copy(v3,surf->vertex3);
-        
-        if (!gCheckingSurfaceCollisionsForCamera) {
-            if (surf->orientation != SURF_CEILING)
-                continue;
-
-            mtxf_mul_vec3f(gNormalTransformMatrix,n);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v1);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v2);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v3);
-        } else {
-            if (n[1] >= -0.01)
-                continue;
-        }
 
         // Checking if point is in bounds of the triangle laterally.
         if ((v1[2] - z) * (v2[0] - v1[0]) - (v1[0] - x) * (v2[2] - v1[2]) > 0) {
@@ -342,8 +348,8 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
         }
     }
     
-    if (!gCheckingSurfaceCollisionsForCamera)
-        *pheight += gMarioState->pos[1];
+    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL))
+        *pheight += gMarioObject->oPosY;
     
     return ceil;
 }
@@ -378,7 +384,7 @@ f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface **pceil) {
     dynamicCeil = find_ceil_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = gStaticSurfaces.next;
+    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SURF_CEILING].next : gStaticSurfaces.next);
     ceil = find_ceil_from_list(surfaceList, x, y, z, &height);
 
     if (dynamicHeight < height) {
@@ -447,10 +453,10 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
     f32 height;
     struct Surface *floor = NULL;
 
-    if (!gCheckingSurfaceCollisionsForCamera) {
-        x -= gMarioState->pos[0];
-        y -= gMarioState->pos[1];
-        z -= gMarioState->pos[2];
+    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) {
+        x -= gMarioObject->oPosX;
+        y -= gMarioObject->oPosY;
+        z -= gMarioObject->oPosZ;
     }
 
     // Iterate through the list of floors until there are no more floors.
@@ -462,19 +468,6 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
         vec3s_copy(v1,surf->vertex1);
         vec3s_copy(v2,surf->vertex2);
         vec3s_copy(v3,surf->vertex3);
-        
-        if (!gCheckingSurfaceCollisionsForCamera) {
-            if (surf->orientation != SURF_FLOOR)
-                continue;
-
-            mtxf_mul_vec3f(gNormalTransformMatrix,n);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v1);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v2);
-            mtxf_mul_vec3s(gGravityTransformMatrix,v3);
-        } else {
-            if (n[1] <= 0.01)
-                continue;
-        }
 
         if ((v1[2] - z) * (v2[0] - v1[0]) - (v1[0] - x) * (v2[2] - v1[2]) < 0) {
             continue;
@@ -511,8 +504,10 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
         }
     }
     
-    if (!gCheckingSurfaceCollisionsForCamera)
-        *pheight += gMarioState->pos[1];
+
+    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL))
+        *pheight += gMarioObject->oPosY;
+
 
     //! (Surface Cucking) Since only the first floor is returned and not the highest,
     //  higher floors can be "cucked" by lower floors.
@@ -561,7 +556,7 @@ f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor) {
     dynamicFloor = find_floor_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = gStaticSurfaces.next;
+    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SURF_FLOOR].next : gStaticSurfaces.next);
     floor = find_floor_from_list(surfaceList, x, y, z, &height);
 
     // To prevent the Merry-Go-Round room from loading when Mario passes above the hole that leads

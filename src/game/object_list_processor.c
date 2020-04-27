@@ -267,9 +267,7 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 /**
  * Mario's primary behavior update function.
  */
-extern void transform_surface_vars(struct SurfaceNode *);
 
-s32 gSurfacesCategorized;
 Vec3f gMarioPosOffset;
  
 void bhv_mario_update(void) {
@@ -277,16 +275,21 @@ void bhv_mario_update(void) {
     s32 i;
     Vec3f test, up, pos;
     struct Object *obj;
-    
-    gSurfacesCategorized = FALSE;
+
+    clear_dynamic_and_transformed_surfaces();
     
     vec3f_set(up,0,1,0);
     vec3f_normalize(up);
-    vec3f_set(pos, -gMarioState->pos[0], -gMarioState->pos[1], -gMarioState->pos[2]);\
+    create_gravity_matrices(up);
+    print_text_fmt_int(20,20,"Z %d",(s32)(up[2]*100));
+    print_text_fmt_int(20,40,"Y %d",(s32)(up[1]*100));
+    print_text_fmt_int(20,60,"X %d",(s32)(up[0]*100));
+    
+    transform_surfaces();
+
+    vec3f_set(pos, -gMarioState->pos[0], -gMarioState->pos[1], -gMarioState->pos[2]);
     
     vec3f_set(gMarioPosOffset,0,0,0);
-    
-    create_gravity_matrices(up);
     
     vec3f_copy(test,gMarioState->pos);
     if (gMarioState->controller->buttonDown & B_BUTTON)
@@ -298,27 +301,23 @@ void bhv_mario_update(void) {
 
     vec3f_add(test, pos);
     mtxf_mul_vec3f(gGravityInverseMatrix, test);
-    
-    print_text_fmt_int(20,20,"Z %d",(s32)(up[2]*100));
-    print_text_fmt_int(20,40,"Y %d",(s32)(up[1]*100));
-    print_text_fmt_int(20,60,"X %d",(s32)(up[0]*100));
-    print_text_fmt_int(20,80,"GRAV");
+
+    if (gMarioState->floor != NULL)
+        print_text_fmt_int(20,100,"ROOM %d", (s32)gMarioCurrentRoom);
     
     //vec3f_add(test, gMarioState->pos);
-    
-    print_text_fmt_int(100,20,"Z %d",(s32)(test[2] - gMarioState->pos[2]));
-    print_text_fmt_int(100,40,"Y %d",(s32)(test[1] - gMarioState->pos[1]));
-    print_text_fmt_int(100,60,"X %d",(s32)(test[0] - gMarioState->pos[0]));
-    print_text_fmt_int(100,80,"OFFSET");
-    
+
     obj = spawn_object(gCurrentObject, MODEL_STAR, bhvSmallParticle);
     obj_set_pos(obj,test[0],test[1],test[2]);
-    transform_surface_vars(gStaticSurfaces.next);
-    transform_surface_vars(gDynamicSurfaces.next);
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
 
+    print_text_fmt_int(100,20,"Z %d",(s32)(gMarioState->pos[2] - gMarioObject->oPosZ));
+    print_text_fmt_int(100,40,"Y %d",(s32)(gMarioState->pos[1] - gMarioObject->oPosY));
+    print_text_fmt_int(100,60,"X %d",(s32)(gMarioState->pos[0] - gMarioObject->oPosX));
+    print_text_fmt_int(100,80,"OFFSET");
+    
     // Mario code updates MarioState's versions of position etc, so we need
     // to sync it with the mario object
     copy_mario_state_to_object();
@@ -603,7 +602,7 @@ void clear_objects(void) {
     gObjectMemoryPool = mem_pool_init(0x800, MEMORY_POOL_LEFT);
     gObjectLists = gObjectListArray;
 
-    clear_dynamic_surfaces();
+    clear_dynamic_and_transformed_surfaces();
 }
 
 /**
@@ -674,6 +673,7 @@ static u16 unused_get_elapsed_time(u64 *cycleCounts, s32 index) {
  */
 void update_objects(UNUSED s32 unused) {
     s64 cycleCounts[30];
+    Vec3f up;
 
     cycleCounts[0] = get_current_clock();
 
@@ -690,7 +690,6 @@ void update_objects(UNUSED s32 unused) {
 
     // If time stop is not active, unload object surfaces
     cycleCounts[1] = get_clock_difference(cycleCounts[0]);
-    clear_dynamic_surfaces();
 
     // Update spawners and objects with surfaces
     cycleCounts[2] = get_clock_difference(cycleCounts[0]);

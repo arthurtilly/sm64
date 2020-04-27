@@ -181,7 +181,7 @@ Gfx *geo_switch_area(s32 run, struct GraphNode *node, UNUSED void *context) {
 Gfx *geo_switch_area(s32 run, struct GraphNode *node) {
 #endif
     s16 sp26;
-    struct Surface *sp20;
+    struct Surface *sp20 = gMarioState->floor;
     UNUSED struct Object *sp1C =
         (struct Object *) gCurGraphNodeObject; // TODO: change global type to Object pointer
     struct GraphNodeSwitchCase *switchCase = (struct GraphNodeSwitchCase *) node;
@@ -191,8 +191,6 @@ Gfx *geo_switch_area(s32 run, struct GraphNode *node) {
             switchCase->selectedCase = 0;
         } else {
             gFindFloorIncludeSurfaceIntangible = TRUE;
-
-            find_floor(gMarioObject->oPosX, gMarioObject->oPosY, gMarioObject->oPosZ, &sp20);
 
             if (sp20) {
                 gMarioCurrentRoom = sp20->room;
