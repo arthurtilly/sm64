@@ -237,7 +237,11 @@ void copy_mario_state_to_object(void) {
     gCurrentObject->oPosY = gMarioStates[i].pos[1];
     gCurrentObject->oPosZ = gMarioStates[i].pos[2];
     
-    vec3f_copy(gCurrentObject->header.gfx.pos, gMarioStates[i].pos);
+    vec3f_copy(&gCurrentObject->oPosX, gMarioStates[i].pos);
+    mtxf_mul_vec3f(gGravityInverseMatrix, &gCurrentObject->oPosX);
+    
+    vec3f_copy(gMarioStates[i].pos, &gCurrentObject->oPosX);
+    vec3f_copy(gCurrentObject->header.gfx.pos, &gCurrentObject->oPosX);
 
     gCurrentObject->oMoveAnglePitch = gCurrentObject->header.gfx.angle[0];
     gCurrentObject->oMoveAngleYaw = gCurrentObject->header.gfx.angle[1];
@@ -267,48 +271,24 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 /**
  * Mario's primary behavior update function.
  */
-
-Vec3f gMarioPosOffset;
  
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
-    Vec3f test, up, pos;
     struct Object *obj;
 
     clear_dynamic_and_transformed_surfaces();
-    
-    vec3f_set(up,0,1,0);
-    vec3f_normalize(up);
-    create_gravity_matrices(up);
-    print_text_fmt_int(20,20,"Z %d",(s32)(up[2]*100));
-    print_text_fmt_int(20,40,"Y %d",(s32)(up[1]*100));
-    print_text_fmt_int(20,60,"X %d",(s32)(up[0]*100));
+
+    create_gravity_matrices();
+    print_text_fmt_int(20,20,"Z %d",(s32)(gGravityVector[2]*100));
+    print_text_fmt_int(20,40,"Y %d",(s32)(gGravityVector[1]*100));
+    print_text_fmt_int(20,60,"X %d",(s32)(gGravityVector[0]*100));
     
     transform_surfaces();
-
-    vec3f_set(pos, -gMarioState->pos[0], -gMarioState->pos[1], -gMarioState->pos[2]);
     
-    vec3f_set(gMarioPosOffset,0,0,0);
-    
-    vec3f_copy(test,gMarioState->pos);
-    if (gMarioState->controller->buttonDown & B_BUTTON)
-        test[0] += 300;
-    if (gMarioState->controller->buttonDown & Z_TRIG)
-        test[1] += 300;
-    if (gMarioState->controller->buttonDown & L_TRIG)
-        test[2] += 300;
-
-    vec3f_add(test, pos);
-    mtxf_mul_vec3f(gGravityInverseMatrix, test);
-
-    if (gMarioState->floor != NULL)
-        print_text_fmt_int(20,100,"ROOM %d", (s32)gMarioCurrentRoom);
-    
-    //vec3f_add(test, gMarioState->pos);
-
-    obj = spawn_object(gCurrentObject, MODEL_STAR, bhvSmallParticle);
-    obj_set_pos(obj,test[0],test[1],test[2]);
+    gMarioState->pos[0] -= gMarioObject->oPosX;
+    gMarioState->pos[1] -= gMarioObject->oPosY;
+    gMarioState->pos[2] -= gMarioObject->oPosZ;
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
@@ -316,11 +296,13 @@ void bhv_mario_update(void) {
     print_text_fmt_int(100,20,"Z %d",(s32)(gMarioState->pos[2] - gMarioObject->oPosZ));
     print_text_fmt_int(100,40,"Y %d",(s32)(gMarioState->pos[1] - gMarioObject->oPosY));
     print_text_fmt_int(100,60,"X %d",(s32)(gMarioState->pos[0] - gMarioObject->oPosX));
-    print_text_fmt_int(100,80,"OFFSET");
+    print_text_fmt_int(100,80,"YAW %d", gMarioState->faceAngle[1]);
     
     // Mario code updates MarioState's versions of position etc, so we need
     // to sync it with the mario object
     copy_mario_state_to_object();
+    
+    update_mario_info_for_cam(gMarioState);
 
     i = 0;
     while (sParticleTypes[i].particleFlag != 0) {

@@ -35,6 +35,11 @@
 u32 unused80339F10;
 s8 filler80339F1C[20];
 
+struct Surface gDeathFloor = {
+    SURFACE_DEATH_PLANE, 0, 0, 0, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
+    { 0.0f, 1.0f, 0.0f },  0.0f, NULL, NULL,
+};
+
 /**************************************************
  *                    ANIMATIONS                  *
  **************************************************/
@@ -1297,6 +1302,7 @@ void update_mario_button_inputs(struct MarioState *m) {
  */
 void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
+    s16 gravityLateral;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
 
     if (m->squishTimer == 0) {
@@ -1306,7 +1312,9 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     }
 
     if (m->intendedMag > 0.0f) {
-        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
+        //gravityLateral = atan2s(gGravityVector[2]*100,gGravityVector[0]*100);
+        //gravityLateral = (m->area->camera->yaw - gravityLateral) * (gGravityVector[1] > 0 ? gGravityVector[1] : -gGravityVector[1]) + gravityLateral;
+        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw ;
         m->input |= INPUT_NONZERO_ANALOG;
     } else {
         m->intendedYaw = m->faceAngle[1];
@@ -1330,8 +1338,7 @@ void update_mario_geometry_inputs(struct MarioState *m) {
     // This can cause errant behavior when combined with astral projection,
     // since the graphical position was not Mario's previous location.
     if (m->floor == NULL) {
-        vec3f_copy(m->pos, m->marioObj->header.gfx.pos);
-        m->floorHeight = find_floor(m->pos[0], m->pos[1], m->pos[2], &m->floor);
+        m->floor = &gDeathFloor;
     }
 
     m->ceilHeight = vec3f_find_ceil(&m->pos[0], m->floorHeight, &m->ceil);
@@ -1732,7 +1739,6 @@ s32 execute_mario_action(UNUSED struct Object *o) {
         squish_mario_model(gMarioState);
         set_submerged_cam_preset_and_spawn_bubbles(gMarioState);
         update_mario_health(gMarioState);
-        update_mario_info_for_cam(gMarioState);
         mario_update_hitbox_and_cap_model(gMarioState);
 
         // Both of the wind handling portions play wind audio only in
@@ -1807,6 +1813,8 @@ void init_mario(void) {
     vec3s_set(gMarioState->angleVel, 0, 0, 0);
     vec3s_to_vec3f(gMarioState->pos, gMarioSpawnInfo->startPos);
     vec3f_set(gMarioState->vel, 0, 0, 0);
+    vec3f_set(gGravityVector, 0, 1, 0);
+    
     gMarioState->floorHeight =
         find_floor(gMarioState->pos[0], gMarioState->pos[1], gMarioState->pos[2], &gMarioState->floor);
 

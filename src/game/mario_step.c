@@ -13,7 +13,7 @@ static s16 sMovingSandSpeeds[] = { 12, 8, 4, 0 };
 
 struct Surface gWaterSurfacePseudoFloor = {
     SURFACE_VERY_SLIPPERY, 0, 0, 0, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
-    { 0.0f, 1.0f, 0.0f },  0.0f, NULL,
+    { 0.0f, 1.0f, 0.0f },  0.0f, NULL, NULL,
 };
 
 /**
@@ -337,6 +337,7 @@ s32 perform_ground_step(struct MarioState *m) {
     if (stepResult == GROUND_STEP_HIT_WALL_CONTINUE_QSTEPS) {
         stepResult = GROUND_STEP_HIT_WALL;
     }
+    if (&m->floor->origSurf != NULL) vec3f_copy(gGravityVector, &m->floor->origSurf->normal.x);
     return stepResult;
 }
 
@@ -623,6 +624,12 @@ s32 perform_air_step(struct MarioState *m, u32 stepArg) {
     if (quarterStepResult != AIR_STEP_NONE) {
         stepResult = quarterStepResult;
     }
+    
+    if (stepResult == AIR_STEP_HIT_WALL) {
+        if ((m->wall != NULL) && (&m->wall->origSurf != NULL)) vec3f_copy(gGravityVector, &m->wall->origSurf->normal.x);
+    } else {
+        if (&m->floor->origSurf != NULL) vec3f_copy(gGravityVector, &m->floor->origSurf->normal.x);
+    }
 
     if (m->vel[1] >= 0.0f) {
         m->peakHeight = m->pos[1];
@@ -635,7 +642,6 @@ s32 perform_air_step(struct MarioState *m, u32 stepArg) {
     }
     apply_vertical_wind(m);
 
-    vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
     vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
 
     return stepResult;

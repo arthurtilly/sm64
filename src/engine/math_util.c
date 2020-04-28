@@ -484,7 +484,9 @@ static f32 det_mat2(f32 a, f32 b, f32 c, f32 d) {
 #define gt gGravityTransformMatrix
 #define gt_i gGravityInverseMatrix
 
-void create_gravity_transform_matrix(Vec3f up) { // up must be normalized
+Vec3f gGravityVector;
+
+void create_gravity_transform_matrix(void) { // up must be normalized
     Vec3f pos;
     Mat4 tl;
     //f32 a,b,c,d,e,f,g,h,i;
@@ -537,21 +539,22 @@ s32 sign(f32 a) {
     return (a>=0 ? 1 : -1);
 }
 
-void create_gravity_matrices(Vec3f up) {
-    Vec3f xColumn, yColumn, zColumn, forward;
+void create_gravity_matrices(void) {
+    Vec3f xColumn, zColumn, forward;
+    
+    vec3f_normalize(gGravityVector);
     
     // Creates matrix that rotates from 0,1,0 to gravity vector
     //vec3f_set(forward, sins(gMarioState->faceAngle[1]), -sign(up[1]) * (sins(gMarioState->faceAngle[1])*up[0] + coss(gMarioState->faceAngle[1])*up[2]), coss(gMarioState->faceAngle[1]));
-    vec3f_set(forward, 0, -sign(up[1]) * up[2], 1);
+    vec3f_set(forward, 0, -sign(gGravityVector[1]) * gGravityVector[2], 1);
 
     vec3f_normalize(forward);
         
-    vec3f_cross(xColumn, up, forward);
+    vec3f_cross(xColumn, gGravityVector, forward);
     vec3f_normalize(xColumn);
-    vec3f_cross(zColumn, xColumn, up);
+    vec3f_cross(zColumn, xColumn, gGravityVector);
     vec3f_normalize(zColumn);
     
-    vec3f_set(yColumn, up[0], up[1], up[2]);
     //if (up[1] <= 0) vec3f_set(yColumn, -yColumn[0], -yColumn[1], -yColumn[2]);
     
     gt_i[0][0] = xColumn[0];
@@ -559,9 +562,9 @@ void create_gravity_matrices(Vec3f up) {
     gt_i[0][2] = xColumn[2];
     gt_i[3][0] = 0;
 
-    gt_i[1][0] = yColumn[0];
-    gt_i[1][1] = yColumn[1];
-    gt_i[1][2] = yColumn[2];
+    gt_i[1][0] = gGravityVector[0];
+    gt_i[1][1] = gGravityVector[1];
+    gt_i[1][2] = gGravityVector[2];
     gt_i[3][1] = 0;
 
     gt_i[2][0] = zColumn[0];
@@ -574,7 +577,7 @@ void create_gravity_matrices(Vec3f up) {
     gt_i[2][3] = 0;
     gt_i[3][3] = 1;
     
-    create_gravity_transform_matrix(up);
+    create_gravity_transform_matrix();
     
     // Add translation from origin to Mario pos
     gt_i[3][0] = gMarioObject->oPosX;

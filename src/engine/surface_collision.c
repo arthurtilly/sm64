@@ -19,7 +19,6 @@
  * Iterate through the list of walls until all walls are checked and
  * have given their wall push.
  */
- 
 
 void transform_surfaces() {
     Vec3s v1,v2,v3;
@@ -67,6 +66,7 @@ void transform_surfaces() {
         newSurf->force = surf->force;
         newSurf->room = surf->room;
         newSurf->object = surf->object;
+        newSurf->origSurf = surf;
 
         newNode->surface = newSurf;
 
@@ -91,12 +91,6 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
     Vec3s v1,v2,v3;
     Vec3f n;
     s32 numCols = 0;
-
-    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) {
-        x -= gMarioObject->oPosX;
-        y -= gMarioObject->oPosY;
-        z -= gMarioObject->oPosZ;
-    }
 
     // Max collision radius = 200
     if (radius > 200.0f) {
@@ -287,12 +281,6 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
     Vec3s v1, v2, v3;
     Vec3f n;
 
-    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) {
-        x -= gMarioObject->oPosX;
-        y -= gMarioObject->oPosY;
-        z -= gMarioObject->oPosZ;
-    }
-
     ceil = NULL;
 
     // Stay in this loop until out of ceilings.
@@ -347,9 +335,6 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
             }
         }
     }
-    
-    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL))
-        *pheight += gMarioObject->oPosY;
     
     return ceil;
 }
@@ -453,12 +438,6 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
     f32 height;
     struct Surface *floor = NULL;
 
-    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) {
-        x -= gMarioObject->oPosX;
-        y -= gMarioObject->oPosY;
-        z -= gMarioObject->oPosZ;
-    }
-
     // Iterate through the list of floors until there are no more floors.
     while (surfaceNode != NULL) {
         surf = surfaceNode->surface;
@@ -503,11 +482,6 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
             floor = surf;
         }
     }
-    
-
-    if ((gCurrentObject == gMarioObject) && (gMarioObject != NULL))
-        *pheight += gMarioObject->oPosY;
-
 
     //! (Surface Cucking) Since only the first floor is returned and not the highest,
     //  higher floors can be "cucked" by lower floors.
