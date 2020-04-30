@@ -29,10 +29,11 @@ extern f32 gCosineTable[];
 
 #define sqr(x) ((x) * (x))
 
+extern Vec3f gGravityVector;
 extern Mat4 gGravityTransformMatrix;
 extern Mat4 gGravityInverseMatrix;
 extern Mat4 gNormalTransformMatrix;
-extern Vec3f gGravityVector;
+extern Mat4 gGravityRotInverseMatrix;
 
 void *vec3f_copy(Vec3f dest, Vec3f src);
 void *vec3f_set(Vec3f dest, f32 x, f32 y, f32 z);

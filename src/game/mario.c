@@ -1302,7 +1302,6 @@ void update_mario_button_inputs(struct MarioState *m) {
  */
 void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
-    s16 gravityLateral;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
 
     if (m->squishTimer == 0) {
@@ -1312,9 +1311,7 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     }
 
     if (m->intendedMag > 0.0f) {
-        //gravityLateral = atan2s(gGravityVector[2]*100,gGravityVector[0]*100);
-        //gravityLateral = (m->area->camera->yaw - gravityLateral) * (gGravityVector[1] > 0 ? gGravityVector[1] : -gGravityVector[1]) + gravityLateral;
-        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw ;
+        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
         m->input |= INPUT_NONZERO_ANALOG;
     } else {
         m->intendedYaw = m->faceAngle[1];

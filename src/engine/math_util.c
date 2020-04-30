@@ -13,9 +13,12 @@
 Vec4s *gSplineKeyframe;
 float gSplineKeyframeFraction;
 int gSplineState;
+
+Vec3f gGravityVector;
 Mat4 gGravityTransformMatrix;
 Mat4 gGravityInverseMatrix;
 Mat4 gNormalTransformMatrix;
+Mat4 gGravityRotInverseMatrix;
 
 // These functions have bogus return values.
 // Disable the compiler warning.
@@ -484,8 +487,6 @@ static f32 det_mat2(f32 a, f32 b, f32 c, f32 d) {
 #define gt gGravityTransformMatrix
 #define gt_i gGravityInverseMatrix
 
-Vec3f gGravityVector;
-
 void create_gravity_transform_matrix(void) { // up must be normalized
     Vec3f pos;
     Mat4 tl;
@@ -577,6 +578,7 @@ void create_gravity_matrices(void) {
     gt_i[2][3] = 0;
     gt_i[3][3] = 1;
     
+    mtxf_copy(gGravityRotInverseMatrix, gt_i);
     create_gravity_transform_matrix();
     
     // Add translation from origin to Mario pos

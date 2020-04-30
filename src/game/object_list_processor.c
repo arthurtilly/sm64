@@ -224,6 +224,8 @@ struct ParticleProperties sParticleTypes[] = {
  */
 void copy_mario_state_to_object(void) {
     s32 i = 0;
+    Mat4 transfMat;
+
     // L is real
     if (gCurrentObject != gMarioObject) {
         i += 1;
@@ -239,9 +241,18 @@ void copy_mario_state_to_object(void) {
     
     vec3f_copy(&gCurrentObject->oPosX, gMarioStates[i].pos);
     mtxf_mul_vec3f(gGravityInverseMatrix, &gCurrentObject->oPosX);
+
+    vec3f_copy(gCurrentObject->header.gfx.pos, &gCurrentObject->oPosX);
+    
+    // Transform Mario
+    mtxf_copy(gCurrentObject->transform,gGravityInverseMatrix);
+    // Apply the movement Mario has done in the frame (gMarioStates[i].pos) and rotate him 
+    mtxf_rotate_zxy_and_translate(transfMat, gMarioStates[i].pos, gCurrentObject->header.gfx.angle);
+    // Combine with gravity transform matrix
+    mtxf_mul(gCurrentObject->transform, transfMat, gCurrentObject->transform);
+    gCurrentObject->header.gfx.throwMatrix = gCurrentObject->transform;
     
     vec3f_copy(gMarioStates[i].pos, &gCurrentObject->oPosX);
-    vec3f_copy(gCurrentObject->header.gfx.pos, &gCurrentObject->oPosX);
 
     gCurrentObject->oMoveAnglePitch = gCurrentObject->header.gfx.angle[0];
     gCurrentObject->oMoveAngleYaw = gCurrentObject->header.gfx.angle[1];
@@ -271,32 +282,47 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 /**
  * Mario's primary behavior update function.
  */
+Vec3f oldGravity;
  
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
+    s16 oldAng, newAng;
     struct Object *obj;
 
     clear_dynamic_and_transformed_surfaces();
-
+    
     create_gravity_matrices();
+    
+    // Adjust Mario's yaw when changing gravity. This becaomes more of a problem as gGravityVector[1] approaches 0 (on a wall).
+    
+    oldAng = atan2s((oldGravity[1]>=0 ? 1 : -1)*oldGravity[2]*100,oldGravity[0]*100);
+    newAng = atan2s((gGravityVector[1]>=0 ? 1 : -1)*gGravityVector[2]*100,gGravityVector[0]*100);
+    
+    newAng = newAng - oldAng; // make sure it is cast to s16 before being multiplied by the float to avoid errors
+    newAng *= (1.f - (gGravityVector[1] > oldGravity[1] ? ABS(gGravityVector[1]) : ABS(oldGravity[1])));
+    
+    gMarioState->faceAngle[1] += newAng;
+
+    // Create transformation matrix based on the gravity
     print_text_fmt_int(20,20,"Z %d",(s32)(gGravityVector[2]*100));
     print_text_fmt_int(20,40,"Y %d",(s32)(gGravityVector[1]*100));
     print_text_fmt_int(20,60,"X %d",(s32)(gGravityVector[0]*100));
+    print_text_fmt_int(20,80,"YAW %d",gMarioState->faceAngle[1]);
     
-    transform_surfaces();
+    // Recalculate collision tris
+    gravity_transform_surfaces();
     
+    vec3f_copy(oldGravity, gGravityVector);
+    
+    // Since the rotation is centered around Mario's position and so will have no effect,
+    // we don't need to apply the whole matrix, just the translation
     gMarioState->pos[0] -= gMarioObject->oPosX;
     gMarioState->pos[1] -= gMarioObject->oPosY;
     gMarioState->pos[2] -= gMarioObject->oPosZ;
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
-
-    print_text_fmt_int(100,20,"Z %d",(s32)(gMarioState->pos[2] - gMarioObject->oPosZ));
-    print_text_fmt_int(100,40,"Y %d",(s32)(gMarioState->pos[1] - gMarioObject->oPosY));
-    print_text_fmt_int(100,60,"X %d",(s32)(gMarioState->pos[0] - gMarioObject->oPosX));
-    print_text_fmt_int(100,80,"YAW %d", gMarioState->faceAngle[1]);
     
     // Mario code updates MarioState's versions of position etc, so we need
     // to sync it with the mario object

@@ -14,6 +14,7 @@
 #include "game/mario.h"
 #include "game/object_list_processor.h"
 #include "surface_load.h"
+#include "engine/math_util.h"
 
 s32 unused8038BE90;
 
@@ -508,7 +509,61 @@ void clear_dynamic_and_transformed_surfaces(void) {
     }
 }
 
-static void unused_80383604(void) {
+void gravity_transform_surfaces(void) {
+    Vec3s v1,v2,v3;
+    Vec3f n;
+    struct Surface *surf, *newSurf;
+    struct SurfaceNode *surfaceNode = gStaticSurfaces.next;
+    s32 listIndex;
+    
+    if (gMarioObject == NULL)
+        return;
+    
+    while (surfaceNode != NULL) {
+        struct SurfaceNode *newNode = alloc_surface_node();
+        struct SurfaceNode *list;
+        
+        surf = surfaceNode->surface;
+        surfaceNode = surfaceNode->next;
+
+        vec3f_copy(n,&surf->normal.x);
+        vec3s_copy(v1,surf->vertex1);
+        vec3s_copy(v2,surf->vertex2);
+        vec3s_copy(v3,surf->vertex3);
+        mtxf_mul_vec3f(gNormalTransformMatrix,n);
+        mtxf_mul_vec3s(gGravityTransformMatrix,v1);
+        mtxf_mul_vec3s(gGravityTransformMatrix,v2);
+        mtxf_mul_vec3s(gGravityTransformMatrix,v3);
+        
+        if (n[1] > 0.01) {
+            listIndex = SURF_FLOOR;
+        } else if (n[1] < -0.01) {
+            listIndex = SURF_CEILING;
+        } else {
+            listIndex = SURF_WALL;
+        }
+        
+        newSurf = alloc_surface();
+
+        vec3s_copy(newSurf->vertex1, v1);
+        vec3s_copy(newSurf->vertex2, v2);
+        vec3s_copy(newSurf->vertex3, v3);
+        vec3f_copy(&newSurf->normal.x, n);
+
+        newSurf->originOffset = -(n[0] * v1[0] + n[1] * v1[1] + n[2] * v1[2]);
+        newSurf->type = surf->type;
+        newSurf->force = surf->force;
+        newSurf->room = surf->room;
+        newSurf->object = surf->object;
+        newSurf->origSurf = surf;
+
+        newNode->surface = newSurf;
+
+        list = &gStaticSurfacePartition[listIndex];
+
+        newNode->next = list->next;
+        list->next = newNode;
+    }
 }
 
 /**
