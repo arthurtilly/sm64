@@ -282,27 +282,26 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
 /**
  * Mario's primary behavior update function.
  */
-Vec3f oldGravity;
+Vec3f marioVelGrav;
  
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
-    s16 oldAng, newAng;
     struct Object *obj;
 
     clear_dynamic_and_transformed_surfaces();
     
     create_gravity_matrices();
     
-    // Adjust Mario's yaw when changing gravity. This becaomes more of a problem as gGravityVector[1] approaches 0 (on a wall).
-    
-    oldAng = atan2s((oldGravity[1]>=0 ? 1 : -1)*oldGravity[2]*100,oldGravity[0]*100);
-    newAng = atan2s((gGravityVector[1]>=0 ? 1 : -1)*gGravityVector[2]*100,gGravityVector[0]*100);
-    
-    newAng = newAng - oldAng; // make sure it is cast to s16 before being multiplied by the float to avoid errors
-    newAng *= (1.f - (gGravityVector[1] > oldGravity[1] ? ABS(gGravityVector[1]) : ABS(oldGravity[1])));
-    
-    gMarioState->faceAngle[1] += newAng;
+    mtxf_mul_vec3f(gNormalTransformMatrix, marioVelGrav);
+    gMarioState->vel[1] = marioVelGrav[1];
+    if (gMarioState->forwardVel > 0.f) {
+        gMarioState->forwardVel = sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]);
+        gMarioState->faceAngle[1] = atan2s(marioVelGrav[2], marioVelGrav[0]);
+    } else if (gMarioState->forwardVel < 0.f) {
+        gMarioState->forwardVel = -sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]);
+        gMarioState->faceAngle[1] = atan2s(marioVelGrav[2], marioVelGrav[0]) + 0x8000;
+    }
 
     // Create transformation matrix based on the gravity
     print_text_fmt_int(20,20,"Z %d",(s32)(gGravityVector[2]*100));
@@ -329,6 +328,9 @@ void bhv_mario_update(void) {
     copy_mario_state_to_object();
     
     update_mario_info_for_cam(gMarioState);
+    
+    vec3f_set(marioVelGrav,gMarioState->forwardVel * sins(gMarioState->faceAngle[1]), gMarioState->vel[1], gMarioState->forwardVel * coss(gMarioState->faceAngle[1]));
+    mtxf_mul_vec3f(gGravityRotInverseMatrix, marioVelGrav);
 
     i = 0;
     while (sParticleTypes[i].particleFlag != 0) {
