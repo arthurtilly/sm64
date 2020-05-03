@@ -283,36 +283,32 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
  * Mario's primary behavior update function.
  */
 Vec3f marioVelGrav;
+Vec3f marioAngGrav;
  
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
+    s16 angToFvel;
     struct Object *obj;
 
     clear_dynamic_and_transformed_surfaces();
+    if (gCurrLevelNum == LEVEL_WF)
+        vec3f_copy(gGravityVector,&gMarioObject->oPosX);
     
     create_gravity_matrices();
     
     mtxf_mul_vec3f(gNormalTransformMatrix, marioVelGrav);
-    gMarioState->vel[1] = marioVelGrav[1];
-    if (gMarioState->forwardVel > 0.f) {
-        gMarioState->forwardVel = sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]);
-        gMarioState->faceAngle[1] = atan2s(marioVelGrav[2], marioVelGrav[0]);
-    } else if (gMarioState->forwardVel < 0.f) {
-        gMarioState->forwardVel = -sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]);
-        gMarioState->faceAngle[1] = atan2s(marioVelGrav[2], marioVelGrav[0]) + 0x8000;
-    }
+    mtxf_mul_vec3f(gNormalTransformMatrix, marioAngGrav);
+    vec3f_copy(gMarioState->vel, marioVelGrav);
 
-    // Create transformation matrix based on the gravity
-    print_text_fmt_int(20,20,"Z %d",(s32)(gGravityVector[2]*100));
-    print_text_fmt_int(20,40,"Y %d",(s32)(gGravityVector[1]*100));
-    print_text_fmt_int(20,60,"X %d",(s32)(gGravityVector[0]*100));
-    print_text_fmt_int(20,80,"YAW %d",gMarioState->faceAngle[1]);
+    if (gMarioState->forwardVel != 0.f) {
+        gMarioState->faceAngle[1] = atan2s(marioAngGrav[2], marioAngGrav[0]);
+        angToFvel = atan2s(marioVelGrav[2], marioVelGrav[0]) - gMarioState->faceAngle[1];
+        gMarioState->forwardVel = sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]) * coss(angToFvel);
+    }
     
     // Recalculate collision tris
     gravity_transform_surfaces();
-    
-    vec3f_copy(oldGravity, gGravityVector);
     
     // Since the rotation is centered around Mario's position and so will have no effect,
     // we don't need to apply the whole matrix, just the translation
@@ -329,8 +325,10 @@ void bhv_mario_update(void) {
     
     update_mario_info_for_cam(gMarioState);
     
-    vec3f_set(marioVelGrav,gMarioState->forwardVel * sins(gMarioState->faceAngle[1]), gMarioState->vel[1], gMarioState->forwardVel * coss(gMarioState->faceAngle[1]));
+    vec3f_set(marioVelGrav,gMarioState->vel[0], gMarioState->vel[1], gMarioState->vel[2]);
+    vec3f_set(marioAngGrav,sins(gMarioState->faceAngle[1]), 0, coss(gMarioState->faceAngle[1]));
     mtxf_mul_vec3f(gGravityRotInverseMatrix, marioVelGrav);
+    mtxf_mul_vec3f(gGravityRotInverseMatrix, marioAngGrav);
 
     i = 0;
     while (sParticleTypes[i].particleFlag != 0) {
