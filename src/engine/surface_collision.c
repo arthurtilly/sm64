@@ -46,15 +46,19 @@ s16 max_3(s16 a0, s16 a1, s16 a2) {
  */
 
 static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
-                                          struct WallCollisionData *data, UNUSED u32 dynamic) {
+                                          struct WallCollisionData *data) {
+#ifdef VERSION_EU
+    UNUSED u8 pad;
+#endif
     register f32 offset;
     register f32 radius = data->radius;
     register struct Surface *surf;
     register f32 x = data->x;
     register f32 y = data->y + data->offsetY;
     register f32 z = data->z;
-    Vec3s v1,v2,v3;
-    Vec3f n;
+    register f32 px, pz;
+    register f32 w1, w2, w3;
+    register f32 y1, y2, y3;
     s32 numCols = 0;
 
     // Max collision radius = 200
@@ -66,67 +70,71 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
     while (surfaceNode != NULL) {
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
-        
-        vec3f_copy(n,&surf->normal.x);
-        vec3s_copy(v1,surf->vertex1);
-        vec3s_copy(v2,surf->vertex2);
-        vec3s_copy(v3,surf->vertex3);
 
         // Exclude a large number of walls immediately to optimize.
-        if (y < (min_3(v1[1],v2[1],v3[1]) - 5) || y > (max_3(v1[1],v2[1],v3[1]) + 5)) {
+        if (y < (min_3(surf->vertex1[1],surf->vertex2[1],surf->vertex3[1]) - 5) || y > (max_3(surf->vertex1[1],surf->vertex2[1],surf->vertex3[1]) + 5)) {
             continue;
         }
 
-        offset = n[0] * (x - v1[0]) + n[1] * (y - v1[1]) + n[2] * (z - v1[2]);
+        offset = surf->normal.x * x + surf->normal.y * y + surf->normal.z * z + surf->originOffset;
 
         if (offset < -radius || offset > radius) {
             continue;
         }
 
+        px = x;
+        pz = z;
+
         //! (Quantum Tunneling) Due to issues with the vertices walls choose and
         //  the fact they are floating point, certain floating point positions
         //  along the seam of two walls may collide with neither wall or both walls.
-        if (n[0] < -0.707f || n[0] > 0.707f) {
-            if (n[0] > 0.0f) {
-                if ((v1[1] - y) * (v1[2] - v2[2]) - (z - v1[2]) * (v2[1] - v1[1]) > 0.0f) {
+        if (surf->normal.x < -0.707f || surf->normal.x > 0.707f) {
+            w1 = -surf->vertex1[2];            w2 = -surf->vertex2[2];            w3 = -surf->vertex3[2];
+            y1 = surf->vertex1[1];            y2 = surf->vertex2[1];            y3 = surf->vertex3[1];
+
+            if (surf->normal.x > 0.0f) {
+                if ((y1 - y) * (w2 - w1) - (w1 - -pz) * (y2 - y1) > 0.0f) {
                     continue;
                 }
-                if ((v2[1] - y) * (v2[2] - v3[2]) - (z - v2[2]) * (v3[1] - v2[1]) > 0.0f) {
+                if ((y2 - y) * (w3 - w2) - (w2 - -pz) * (y3 - y2) > 0.0f) {
                     continue;
                 }
-                if ((v3[1] - y) * (v3[2] - v1[2]) - (z - v3[2]) * (v1[1] - v3[1]) > 0.0f) {
+                if ((y3 - y) * (w1 - w3) - (w3 - -pz) * (y1 - y3) > 0.0f) {
                     continue;
                 }
             } else {
-                if ((v1[1] - y) * (v1[2] - v2[2]) - (z - v1[2]) * (v2[1] - v1[1]) < 0.0f) {
+                if ((y1 - y) * (w2 - w1) - (w1 - -pz) * (y2 - y1) < 0.0f) {
                     continue;
                 }
-                if ((v2[1] - y) * (v2[2] - v3[2]) - (z - v2[2]) * (v3[1] - v2[1]) < 0.0f) {
+                if ((y2 - y) * (w3 - w2) - (w2 - -pz) * (y3 - y2) < 0.0f) {
                     continue;
                 }
-                if ((v3[1] - y) * (v3[2] - v1[2]) - (z - v3[2]) * (v1[1] - v3[1]) < 0.0f) {
+                if ((y3 - y) * (w1 - w3) - (w3 - -pz) * (y1 - y3) < 0.0f) {
                     continue;
                 }
             }
         } else {
-            if (n[2] > 0.0f) {
-                if ((v1[1] - y) * (v2[0] - v1[0]) - (v1[0] - x) * (v2[1] - v1[1]) > 0.0f) {
+            w1 = surf->vertex1[0];            w2 = surf->vertex2[0];            w3 = surf->vertex3[0];
+            y1 = surf->vertex1[1];            y2 = surf->vertex2[1];            y3 = surf->vertex3[1];
+
+            if (surf->normal.z > 0.0f) {
+                if ((y1 - y) * (w2 - w1) - (w1 - px) * (y2 - y1) > 0.0f) {
                     continue;
                 }
-                if ((v2[1] - y) * (v3[0] - v2[0]) - (v2[0] - x) * (v3[1] - v2[1]) > 0.0f) {
+                if ((y2 - y) * (w3 - w2) - (w2 - px) * (y3 - y2) > 0.0f) {
                     continue;
                 }
-                if ((v3[1] - y) * (v1[0] - v3[0]) - (v3[0] - x) * (v1[1] - v3[1]) > 0.0f) {
+                if ((y3 - y) * (w1 - w3) - (w3 - px) * (y1 - y3) > 0.0f) {
                     continue;
                 }
             } else {
-                if ((v1[1] - y) * (v2[0] - v1[0]) - (v1[0] - x) * (v2[1] - v1[1]) < 0.0f) {
+                if ((y1 - y) * (w2 - w1) - (w1 - px) * (y2 - y1) < 0.0f) {
                     continue;
                 }
-                if ((v2[1] - y) * (v3[0] - v2[0]) - (v2[0] - x) * (v3[1] - v2[1]) < 0.0f) {
+                if ((y2 - y) * (w3 - w2) - (w2 - px) * (y3 - y2) < 0.0f) {
                     continue;
                 }
-                if ((v3[1] - y) * (v1[0] - v3[0]) - (v3[0] - x) * (v1[1] - v3[1]) < 0.0f) {
+                if ((y3 - y) * (w1 - w3) - (w3 - px) * (y1 - y3) < 0.0f) {
                     continue;
                 }
             }
@@ -159,10 +167,10 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
             }
         }
 
-        data->x += n[0] * (radius - offset);
-        x += n[0] * (radius - offset);
-        data->z += n[2] * (radius - offset);
-        z += n[2] * (radius - offset);
+        data->x += surf->normal.x * (radius - offset);
+        x +=       surf->normal.x * (radius - offset);
+        data->z += surf->normal.z * (radius - offset);
+        z +=       surf->normal.z * (radius - offset);
 
         //! (Unreferenced Walls) Since this only returns the first four walls,
         //  this can lead to wall interaction being missed. Typically unreferenced walls
@@ -221,10 +229,10 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
     }
 
     node = gDynamicSurfaces.next;
-    numCollisions += find_wall_collisions_from_list(node, colData, TRUE);
+    numCollisions += find_wall_collisions_from_list(node, colData);
 
     node = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SURF_WALL].next : gStaticSurfaces.next);
-    numCollisions += find_wall_collisions_from_list(node, colData, FALSE);
+    numCollisions += find_wall_collisions_from_list(node, colData);
 
     // Increment the debug tracker.
     gNumCalls.wall += 1;
@@ -242,9 +250,8 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
 static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 x, s32 y, s32 z,
                                            f32 *pheight) {
     register struct Surface *surf;
+    register s32 x1, z1, x2, z2, x3, z3;
     struct Surface *ceil = NULL;
-    Vec3s v1, v2, v3;
-    Vec3f n;
 
     ceil = NULL;
 
@@ -253,19 +260,23 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
 
-        vec3f_copy(n,&surf->normal.x);
-        vec3s_copy(v1,surf->vertex1);
-        vec3s_copy(v2,surf->vertex2);
-        vec3s_copy(v3,surf->vertex3);
-
+        x1 = surf->vertex1[0];
+        z1 = surf->vertex1[2];
+        z2 = surf->vertex2[2];
+        x2 = surf->vertex2[0];
+        
         // Checking if point is in bounds of the triangle laterally.
-        if ((v1[2] - z) * (v2[0] - v1[0]) - (v1[0] - x) * (v2[2] - v1[2]) > 0) {
+        if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) > 0) {
             continue;
         }
-        if ((v2[2] - z) * (v3[0] - v2[0]) - (v2[0] - x) * (v3[2] - v2[2]) > 0) {
+
+        // Slight optimization by checking these later.
+        x3 = surf->vertex3[0];
+        z3 = surf->vertex3[2];
+        if ((z2 - z) * (x3 - x2) - (x2 - x) * (z3 - z2) > 0) {
             continue;
         }
-        if ((v3[2] - z) * (v1[0] - v3[0]) - (v3[0] - x) * (v1[2] - v3[2]) > 0) {
+        if ((z3 - z) * (x1 - x3) - (x3 - x) * (z1 - z3) > 0) {
             continue;
         }
 
@@ -281,10 +292,19 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
         }
 
         {
+            f32 nx = surf->normal.x;
+            f32 ny = surf->normal.y;
+            f32 nz = surf->normal.z;
+            f32 oo = surf->originOffset;
             f32 height;
 
+            // If a wall, ignore it. Likely a remnant, should never occur.
+            if (ny == 0.0f) {
+                continue;
+            }
+
             // Find the ceil height at the specific point.
-            height = -(n[0] * (x - v1[0]) + n[2] * (z - v1[2]) - n[1] * v1[1]) / n[1];
+            height = -(x * nx + nz * z + oo) / ny;
 
             // Checks for ceiling interaction with a 78 unit buffer.
             //! (Exposed Ceilings) Because any point above a ceiling counts
@@ -398,8 +418,9 @@ f32 find_floor_height_and_data(f32 xPos, f32 yPos, f32 zPos, struct FloorGeometr
 static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32 x, s32 y, s32 z,
                                             f32 *pheight) {
     register struct Surface *surf;
-    Vec3s v1,v2,v3;
-    Vec3f n;
+    register s32 x1, z1, x2, z2, x3, z3;
+    f32 nx, ny, nz;
+    f32 oo;
     f32 height;
     struct Surface *floor = NULL;
 
@@ -408,18 +429,24 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
         
-        vec3f_copy(n,&surf->normal.x);
-        vec3s_copy(v1,surf->vertex1);
-        vec3s_copy(v2,surf->vertex2);
-        vec3s_copy(v3,surf->vertex3);
+        x1 = surf->vertex1[0];
+        z1 = surf->vertex1[2];
+        x2 = surf->vertex2[0];
+        z2 = surf->vertex2[2];
 
-        if ((v1[2] - z) * (v2[0] - v1[0]) - (v1[0] - x) * (v2[2] - v1[2]) < 0) {
+        // Check that the point is within the triangle bounds.
+        if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) < 0) {
             continue;
         }
-        if ((v2[2] - z) * (v3[0] - v2[0]) - (v2[0] - x) * (v3[2] - v2[2]) < 0) {
+
+        // To slightly save on computation time, set this later.
+        x3 = surf->vertex3[0];
+        z3 = surf->vertex3[2];
+
+        if ((z2 - z) * (x3 - x2) - (x2 - x) * (z3 - z2) < 0) {
             continue;
         }
-        if ((v3[2] - z) * (v1[0] - v3[0]) - (v3[0] - x) * (v1[2] - v3[2]) < 0) {
+        if ((z3 - z) * (x1 - x3) - (x3 - x) * (z1 - z3) < 0) {
             continue;
         }
 
@@ -434,8 +461,18 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
             continue;
         }
 
+        nx = surf->normal.x;
+        ny = surf->normal.y;
+        nz = surf->normal.z;
+        oo = surf->originOffset;
+
+        // If a wall, ignore it. Likely a remnant, should never occur.
+        if (ny == 0.0f) {
+            continue;
+        }
+
         // Find the height of the floor at a given location.
-        height = -(n[0] * (x - v1[0]) + n[2] * (z - v1[2]) - n[1] * v1[1]) / n[1];
+        height = -(x * nx + nz * z + oo) / ny;
         
         // Checks for floor interaction with a 78 unit buffer.
         if (y - (height + -78.0f) < 0.0f) {

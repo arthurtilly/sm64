@@ -526,6 +526,7 @@ void gravity_transform_surfaces(void) {
         newSurf->room = surf->room;
         newSurf->object = surf->object;
         newSurf->origSurf = surf;
+        newSurf->originOffset = -(newSurf->normal.x * newSurf->vertex1[0] + newSurf->normal.y * newSurf->vertex1[1] + newSurf->normal.z * newSurf->vertex1[2]);
 
         newNode->surface = newSurf;
 
