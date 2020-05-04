@@ -292,11 +292,14 @@ void bhv_mario_update(void) {
     struct Object *obj;
 
     clear_dynamic_and_transformed_surfaces();
+    
     if (gCurrLevelNum == LEVEL_WF)
         vec3f_copy(gGravityVector,&gMarioObject->oPosX);
     
+    // Create the matrices from the gravity vector
     create_gravity_matrices();
     
+    // Sort out Mario's angle and pos
     mtxf_mul_vec3f(gNormalTransformMatrix, marioVelGrav);
     mtxf_mul_vec3f(gNormalTransformMatrix, marioAngGrav);
     vec3f_copy(gMarioState->vel, marioVelGrav);
@@ -325,6 +328,7 @@ void bhv_mario_update(void) {
     
     update_mario_info_for_cam(gMarioState);
     
+    // Transform angle and pos into global coordinates for use next frame
     vec3f_set(marioVelGrav,gMarioState->vel[0], gMarioState->vel[1], gMarioState->vel[2]);
     vec3f_set(marioAngGrav,sins(gMarioState->faceAngle[1]), 0, coss(gMarioState->faceAngle[1]));
     mtxf_mul_vec3f(gGravityRotInverseMatrix, marioVelGrav);
