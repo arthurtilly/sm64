@@ -1323,7 +1323,7 @@ void update_mario_joystick_inputs(struct MarioState *m) {
             m->intendedYaw = atan2s(-controller->stickY, controller->stickX) ;
             m->intendedYaw -= 0x8000 + atan2s(gGravityVector[2], gGravityVector[0]);
         }
-        
+
         m->input |= INPUT_NONZERO_ANALOG;
     } else {
         m->intendedYaw = m->faceAngle[1];
@@ -1342,10 +1342,7 @@ void update_mario_geometry_inputs(struct MarioState *m) {
 
     m->floorHeight = find_floor(m->pos[0], m->pos[1], m->pos[2], &m->floor);
 
-    // If Mario is OOB, move his position to his graphical position (which was not updated)
-    // and check for the floor there.
-    // This can cause errant behavior when combined with astral projection,
-    // since the graphical position was not Mario's previous location.
+    // Disable OoB entirely by making sure Mario always has a "pseudofloor"
     if (m->floor == NULL) {
         m->floor = &gDeathFloor;
     }
@@ -1823,7 +1820,7 @@ void init_mario(void) {
     vec3s_to_vec3f(gMarioState->pos, gMarioSpawnInfo->startPos);
     vec3f_set(gMarioState->vel, 0, 0, 0);
     vec3f_set(gGravityVector, 0, 1, 0);
-    
+
     gMarioState->floorHeight =
         find_floor(gMarioState->pos[0], gMarioState->pos[1], gMarioState->pos[2], &gMarioState->floor);
 

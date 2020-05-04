@@ -238,20 +238,22 @@ void copy_mario_state_to_object(void) {
     gCurrentObject->oPosX = gMarioStates[i].pos[0];
     gCurrentObject->oPosY = gMarioStates[i].pos[1];
     gCurrentObject->oPosZ = gMarioStates[i].pos[2];
-    
+
+    // Update and transform Mario's object's position
     vec3f_copy(&gCurrentObject->oPosX, gMarioStates[i].pos);
     mtxf_mul_vec3f(gLocalToWorldGravTransformMtx, &gCurrentObject->oPosX);
 
+    // Update Mario's graphical position
     vec3f_copy(gCurrentObject->header.gfx.pos, &gCurrentObject->oPosX);
-    
-    // Transform Mario
+
+    // Transform Mario's rotation correctly
     mtxf_copy(gCurrentObject->transform,gLocalToWorldGravTransformMtx);
     // Apply the movement Mario has done in the frame (gMarioStates[i].pos) and rotate him 
     mtxf_rotate_zxy_and_translate(transfMat, gMarioStates[i].pos, gCurrentObject->header.gfx.angle);
     // Combine with gravity transform matrix
     mtxf_mul(gCurrentObject->transform, transfMat, gCurrentObject->transform);
     gCurrentObject->header.gfx.throwMatrix = gCurrentObject->transform;
-    
+
     vec3f_copy(gMarioStates[i].pos, &gCurrentObject->oPosX);
 
     gCurrentObject->oMoveAnglePitch = gCurrentObject->header.gfx.angle[0];
@@ -295,18 +297,15 @@ void bhv_mario_update(void) {
     s16 angToFvel; f32 marioSpeed;
 
     clear_dynamic_and_transformed_surfaces();
-    
-    if (gCurrLevelNum == LEVEL_WF)
-        vec3f_copy(gGravityVector,&gMarioObject->oPosX);
-    
+
     // Create the matrices from the gravity vector
     create_local_to_world_transform_matrix();
     create_world_to_local_transform_matrix();
-    
+
     // Rotate the velocity and angle stored last frame back into local coordinates
     mtxf_mul_vec3f(gWorldToLocalGravRotationMtx, marioVelGrav);
     mtxf_mul_vec3f(gWorldToLocalGravRotationMtx, marioAngGrav);
-    
+
     // Copy velocity
     vec3f_copy(gMarioState->vel, marioVelGrav);
     gMarioState->slideVelX = gMarioState->vel[0];
@@ -315,16 +314,16 @@ void bhv_mario_update(void) {
     // Copy forward velocity and yaw
     if (gMarioState->forwardVel != 0.f) {
         gMarioState->faceAngle[1] = atan2s(marioAngGrav[2], marioAngGrav[0]);
-        
+
         angToFvel = atan2s(marioVelGrav[2], marioVelGrav[0]) - gMarioState->faceAngle[1];
         marioSpeed = sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]);
-        
+
         gMarioState->forwardVel = marioSpeed * coss(angToFvel);
     }
-    
+
     // Recalculate collision tris
-    gravity_transform_surfaces();
-    
+    create_transformed_surfaces();
+
     // Since the rotation is centered around Mario's position and so will have no effect,
     // we don't need to apply the whole matrix, just the translation
     gMarioState->pos[0] -= gMarioObject->oPosX;
@@ -333,13 +332,13 @@ void bhv_mario_update(void) {
 
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
-    
+
     // Mario code updates MarioState's versions of position etc, so we need
     // to sync it with the mario object
     copy_mario_state_to_object();
-    
+
     update_mario_info_for_cam(gMarioState);
-    
+
     // Rotate angle and pos into world coordinates for use next frame
     vec3f_set(marioVelGrav,gMarioState->vel[0], gMarioState->vel[1], gMarioState->vel[2]);
     vec3f_set(marioAngGrav,sins(gMarioState->faceAngle[1]), 0, coss(gMarioState->faceAngle[1]));

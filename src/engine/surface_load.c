@@ -30,7 +30,7 @@ struct SurfaceNode *sSurfaceNodePool;
 struct Surface *sSurfacePool;
 
 /**
- * The size of the surface pool (2300).
+ * The size of the surface pool (5000).
  */
 s16 sSurfacePoolSize;
 
@@ -398,7 +398,7 @@ static void load_environmental_regions(s16 **data) {
  * Allocate some of the main pool for surfaces (5000 surf) and for surface nodes (7000 nodes).
  */
 void alloc_surface_pools(void) {
-    sSurfacePoolSize = 5000;
+    sSurfacePoolSize = 5000; // Increase pool size due to surfaces being duplicated for transformation
     sSurfaceNodePool = main_pool_alloc(7000 * sizeof(struct SurfaceNode), MEMORY_POOL_LEFT);
     sSurfacePool = main_pool_alloc(sSurfacePoolSize * sizeof(struct Surface), MEMORY_POOL_LEFT);
 
@@ -473,29 +473,34 @@ void clear_dynamic_and_transformed_surfaces(void) {
         gSurfaceNodesAllocated = gNumStaticSurfaceNodes;
 
         gDynamicSurfaces.next = NULL;
-        gStaticSurfacePartition[SURF_FLOOR].next = NULL;
-        gStaticSurfacePartition[SURF_CEILING].next = NULL;
-        gStaticSurfacePartition[SURF_WALL].next = NULL;
+        gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next = NULL;
+        gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next = NULL;
+        gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next = NULL;
     }
 }
 
-void gravity_transform_surfaces(void) {
+/**
+ * Transform surfaces with a gravity matrix.
+ * This will create a new surface for every existing surface.
+ */
+void create_transformed_surfaces(void) {
     Vec3s v1,v2,v3;
     Vec3f n;
     struct Surface *surf, *newSurf;
     struct SurfaceNode *surfaceNode = gStaticSurfaces.next;
     s32 listIndex;
-    
+
     if (gMarioObject == NULL)
         return;
-    
+
     while (surfaceNode != NULL) {
         struct SurfaceNode *newNode = alloc_surface_node();
         struct SurfaceNode *list;
-        
+
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
 
+        // Transform vertices and normals
         vec3f_copy(n,&surf->normal.x);
         vec3s_copy(v1,surf->vertex1);
         vec3s_copy(v2,surf->vertex2);
@@ -504,29 +509,31 @@ void gravity_transform_surfaces(void) {
         mtxf_mul_vec3s(gWorldToLocalGravTransformMtx,v1);
         mtxf_mul_vec3s(gWorldToLocalGravTransformMtx,v2);
         mtxf_mul_vec3s(gWorldToLocalGravTransformMtx,v3);
-        
+
+        // Find appropiate partition
         if (n[1] > 0.01) {
-            listIndex = SURF_FLOOR;
+            listIndex = SPATIAL_PARTITION_FLOORS;
         } else if (n[1] < -0.01) {
-            listIndex = SURF_CEILING;
+            listIndex = SPATIAL_PARTITION_CEILS;
         } else {
-            listIndex = SURF_WALL;
+            listIndex = SPATIAL_PARTITION_WALLS;
         }
-        
+
+        // Create the new surface
         newSurf = alloc_surface();
 
         vec3s_copy(newSurf->vertex1, v1);
         vec3s_copy(newSurf->vertex2, v2);
         vec3s_copy(newSurf->vertex3, v3);
         vec3f_copy(&newSurf->normal.x, n);
-
         newSurf->originOffset = -(n[0] * v1[0] + n[1] * v1[1] + n[2] * v1[2]);
+
+        // Copy over some important data
         newSurf->type = surf->type;
         newSurf->force = surf->force;
         newSurf->room = surf->room;
         newSurf->object = surf->object;
         newSurf->origSurf = surf;
-        newSurf->originOffset = -(newSurf->normal.x * newSurf->vertex1[0] + newSurf->normal.y * newSurf->vertex1[1] + newSurf->normal.z * newSurf->vertex1[2]);
 
         newNode->surface = newSurf;
 

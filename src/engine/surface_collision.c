@@ -167,10 +167,11 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
             }
         }
 
+        // Fix wall overlaps glitch
         data->x += surf->normal.x * (radius - offset);
-        x +=       surf->normal.x * (radius - offset);
+        x +=       surf->normal.x * (radius - offset); // Fix
         data->z += surf->normal.z * (radius - offset);
-        z +=       surf->normal.z * (radius - offset);
+        z +=       surf->normal.z * (radius - offset); // Fix
 
         //! (Unreferenced Walls) Since this only returns the first four walls,
         //  this can lead to wall interaction being missed. Typically unreferenced walls
@@ -231,7 +232,7 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
     node = gDynamicSurfaces.next;
     numCollisions += find_wall_collisions_from_list(node, colData);
 
-    node = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SURF_WALL].next : gStaticSurfaces.next);
+    node = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next : gStaticSurfaces.next);
     numCollisions += find_wall_collisions_from_list(node, colData);
 
     // Increment the debug tracker.
@@ -264,7 +265,7 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
         z1 = surf->vertex1[2];
         z2 = surf->vertex2[2];
         x2 = surf->vertex2[0];
-        
+
         // Checking if point is in bounds of the triangle laterally.
         if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) > 0) {
             continue;
@@ -313,14 +314,15 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
             if (y - (height - -78.0f) > 0.0f) {
                 continue;
             }
-            
+
+            // Fix surface cucking glitch
             if (height < *pheight) {
                 *pheight = height;
                 ceil = surf;
             }
         }
     }
-    
+
     return ceil;
 }
 
@@ -354,7 +356,7 @@ f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface **pceil) {
     dynamicCeil = find_ceil_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SURF_CEILING].next : gStaticSurfaces.next);
+    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next : gStaticSurfaces.next);
     ceil = find_ceil_from_list(surfaceList, x, y, z, &height);
 
     if (dynamicHeight < height) {
@@ -428,7 +430,7 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
     while (surfaceNode != NULL) {
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
-        
+
         x1 = surf->vertex1[0];
         z1 = surf->vertex1[2];
         x2 = surf->vertex2[0];
@@ -473,12 +475,13 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
 
         // Find the height of the floor at a given location.
         height = -(x * nx + nz * z + oo) / ny;
-        
+
         // Checks for floor interaction with a 78 unit buffer.
         if (y - (height + -78.0f) < 0.0f) {
             continue;
         }
 
+        // Fix surface cucking glitch
         if (height > *pheight) {
             *pheight = height;
             floor = surf;
@@ -532,7 +535,7 @@ f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor) {
     dynamicFloor = find_floor_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SURF_FLOOR].next : gStaticSurfaces.next);
+    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next : gStaticSurfaces.next);
     floor = find_floor_from_list(surfaceList, x, y, z, &height);
 
     // To prevent the Merry-Go-Round room from loading when Mario passes above the hole that leads

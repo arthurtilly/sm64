@@ -9,13 +9,12 @@ struct SurfaceNode
     struct Surface *surface;
 };
 
-enum SurfaceTypes
+enum
 {
-    SURF_FLOOR,
-    SURF_CEILING,
-    SURF_WALL
+    SPATIAL_PARTITION_FLOORS,
+    SPATIAL_PARTITION_CEILS,
+    SPATIAL_PARTITION_WALLS
 };
-
 
 typedef struct SurfaceNode SpatialPartitionCell[3];
 
@@ -34,7 +33,7 @@ extern s16 sSurfacePoolSize;
 void alloc_surface_pools(void);
 void load_area_terrain(s16 index, s16 *data, s8 *surfaceRooms, s16 *macroObjects);
 void clear_dynamic_and_transformed_surfaces(void);
-void gravity_transform_surfaces(void);
+void create_transformed_surfaces(void);
 void load_object_collision_model(void);
 
 #endif

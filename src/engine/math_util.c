@@ -14,7 +14,9 @@ Vec4s *gSplineKeyframe;
 float gSplineKeyframeFraction;
 int gSplineState;
 
+// The current "up" direction, default <0,1,0>
 Vec3f gGravityVector;
+// Matrices for transforming between global world coordinates and local collision coordinates
 Mat4 gWorldToLocalGravTransformMtx;
 Mat4 gWorldToLocalGravRotationMtx;
 Mat4 gLocalToWorldGravTransformMtx;
@@ -483,24 +485,26 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
 #define g_wtl gWorldToLocalGravTransformMtx
 #define g_ltw gLocalToWorldGravTransformMtx
 
-// Creates matrix that transforms from local collision co-ordintes to global world coordinates
+/**
+ * Creates a matrix that transforms from local collision co-ordintes to global world coordinates.
+ */
 void create_local_to_world_transform_matrix(void) {
     Vec3f xColumn, zColumn, forward;
-    
+
     vec3f_normalize(gGravityVector);
-    
+
     // No idea how this vector works but it does through trial and error lmao
     vec3f_set(forward, 0, gGravityVector[2] * (gGravityVector[1] >= 0 ? -1 : 1), 1);
 
     // Normalize gravity vector
     vec3f_normalize(forward);
-        
+
     // Create orthogonal cardinal axes for global coordinates based on the gravity vector
     vec3f_cross(xColumn, gGravityVector, forward);
     vec3f_normalize(xColumn);
     vec3f_cross(zColumn, xColumn, gGravityVector);
     vec3f_normalize(zColumn);
-    
+
     // Create the rotational part of the matrix that will rotate <0, 1, 0> to gGravityVector
     g_ltw[0][0] = xColumn[0];
     g_ltw[0][1] = xColumn[1];
@@ -521,10 +525,10 @@ void create_local_to_world_transform_matrix(void) {
     g_ltw[1][3] = 0;
     g_ltw[2][3] = 0;
     g_ltw[3][3] = 1;
-    
+
     // Copy the rotational part into another matrix
     mtxf_copy(gLocalToWorldGravRotationMtx, g_ltw);
-    
+
     // Add the translation from origin to Mario's global position
     // Applied after the rotation since rotation is around the origin
     g_ltw[3][0] = gMarioObject->oPosX;
@@ -532,12 +536,14 @@ void create_local_to_world_transform_matrix(void) {
     g_ltw[3][2] = gMarioObject->oPosZ;
 }
 
-// Creates a matrix that transforms from global world coordinates to local collision coordinates
-// Make sure this is called after create_local_to_world_transform_matrix
+/**
+ * Creates a matrix that transforms from global world coordinates to local collision coordinates.
+ * Make sure this is called after create_local_to_world_transform_matrix.
+ */
 void create_world_to_local_transform_matrix(void) {
     Vec3f pos;
     Mat4 tl;
-    
+
     vec3f_set(pos, -gMarioObject->oPosX, -gMarioObject->oPosY, -gMarioObject->oPosZ);
 
     // Create an inverse of the rotational part of the other matrix
@@ -546,25 +552,25 @@ void create_world_to_local_transform_matrix(void) {
     g_wtl[0][1] = g_ltw[2][1] * g_ltw[0][2] - g_ltw[0][1] * g_ltw[2][2];
     g_wtl[0][2] = g_ltw[0][1] * g_ltw[1][2] - g_ltw[1][1] * g_ltw[0][2];
     g_wtl[0][3] = 0;
-    
+
     g_wtl[1][0] = g_ltw[2][0] * g_ltw[1][2] - g_ltw[1][0] * g_ltw[2][2];
     g_wtl[1][1] = g_ltw[0][0] * g_ltw[2][2] - g_ltw[2][0] * g_ltw[0][2];
     g_wtl[1][2] = g_ltw[1][0] * g_ltw[0][2] - g_ltw[0][0] * g_ltw[1][2];
     g_wtl[1][3] = 0;
-    
+
     g_wtl[2][0] = g_ltw[1][0] * g_ltw[2][1] - g_ltw[2][0] * g_ltw[1][1];
     g_wtl[2][1] = g_ltw[2][0] * g_ltw[0][1] - g_ltw[0][0] * g_ltw[2][1];
     g_wtl[2][2] = g_ltw[0][0] * g_ltw[1][1] - g_ltw[1][0] * g_ltw[0][1];
     g_wtl[2][3] = 0;
-    
+
     g_wtl[3][0] = 0;
     g_wtl[3][1] = 0;
     g_wtl[3][2] = 0;
     g_wtl[3][3] = 1;
-    
+
     // Copy the rotational part into another matrix
     mtxf_copy(gWorldToLocalGravRotationMtx, g_wtl);
-    
+
     // Add the translation from Mario's global position to the origin
     // Applied before the rotation since rotation is around the origin
     mtxf_translate(tl, pos);
@@ -652,11 +658,14 @@ void mtxf_mul_vec3s(Mat4 mtx, Vec3s b) {
     b[2] = x * mtx[0][2] + y * mtx[1][2] + z * mtx[2][2] + mtx[3][2];
 }
 
+/**
+ * Need to be able to multiply a vec3f by a matrix for transformation, mostly the same as the above function.
+ */
 void mtxf_mul_vec3f(Mat4 mtx, Vec3f b) {
-    f32 x = b[0];
-    f32 y = b[1];
-    f32 z = b[2];
-    
+    register f32 x = b[0];
+    register f32 y = b[1];
+    register f32 z = b[2];
+
     b[0] = x * mtx[0][0] + y * mtx[1][0] + z * mtx[2][0] + mtx[3][0];
     b[1] = x * mtx[0][1] + y * mtx[1][1] + z * mtx[2][1] + mtx[3][1];
     b[2] = x * mtx[0][2] + y * mtx[1][2] + z * mtx[2][2] + mtx[3][2];

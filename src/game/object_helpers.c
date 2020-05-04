@@ -181,7 +181,7 @@ Gfx *geo_switch_area(s32 run, struct GraphNode *node, UNUSED void *context) {
 Gfx *geo_switch_area(s32 run, struct GraphNode *node) {
 #endif
     s16 sp26;
-    struct Surface *sp20 = gMarioState->floor;
+    struct Surface *sp20 = gMarioState->floor; // Use floor of Mario object that is already transformed instead of finding floor again
     UNUSED struct Object *sp1C =
         (struct Object *) gCurGraphNodeObject; // TODO: change global type to Object pointer
     struct GraphNodeSwitchCase *switchCase = (struct GraphNodeSwitchCase *) node;

@@ -320,10 +320,10 @@ static s32 perform_ground_quarter_step(struct MarioState *m, Vec3f nextPos) {
 }
 
 s32 perform_ground_step(struct MarioState *m) {
-    s32 i;
     u32 stepResult;
     Vec3f intendedPos;
 
+    // Disable quarter steps to reduce lag
     intendedPos[0] = m->pos[0] + m->floor->normal.y * m->vel[0];
     intendedPos[2] = m->pos[2] + m->floor->normal.y * m->vel[2];
     intendedPos[1] = m->pos[1];
@@ -605,25 +605,16 @@ void apply_vertical_wind(struct MarioState *m) {
 
 s32 perform_air_step(struct MarioState *m, u32 stepArg) {
     Vec3f intendedPos;
-    s32 i;
-    s32 quarterStepResult;
     s32 stepResult = AIR_STEP_NONE;
 
     m->wall = NULL;
 
+    // Disable quarter steps to reduce lag
     intendedPos[0] = m->pos[0] + m->vel[0];
     intendedPos[1] = m->pos[1] + m->vel[1];
     intendedPos[2] = m->pos[2] + m->vel[2];
 
-    quarterStepResult = perform_air_quarter_step(m, intendedPos, stepArg);
-
-    //! On one qf, hit OOB/ceil/wall to store the 2 return value, and continue
-    // getting 0s until your last qf. Graze a wall on your last qf, and it will
-    // return the stored 2 with a sharply angled reference wall. (some gwks)
-
-    if (quarterStepResult != AIR_STEP_NONE) {
-        stepResult = quarterStepResult;
-    }
+    stepResult = perform_air_quarter_step(m, intendedPos, stepArg);
 
     if (m->vel[1] >= 0.0f) {
         m->peakHeight = m->pos[1];
