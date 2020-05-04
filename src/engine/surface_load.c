@@ -39,7 +39,7 @@ u8 unused8038EEA8[0x30];
 /**
  * Allocate the part of the surface node pool to contain a surface node.
  */
-struct SurfaceNode *alloc_surface_node(void) {
+static struct SurfaceNode *alloc_surface_node(void) {
     struct SurfaceNode *node = &sSurfaceNodePool[gSurfaceNodesAllocated];
     gSurfaceNodesAllocated++;
 
@@ -58,7 +58,7 @@ struct SurfaceNode *alloc_surface_node(void) {
  * Allocate the part of the surface pool to contain a surface and
  * initialize the surface.
  */
-struct Surface *alloc_surface(void) {
+static struct Surface *alloc_surface(void) {
 
     struct Surface *surface = &sSurfacePool[gSurfacesAllocated];
     gSurfacesAllocated++;
@@ -83,36 +83,6 @@ struct Surface *alloc_surface(void) {
  */
 static void clear_static_surfaces(void) {
     gStaticSurfaces.next = NULL;
-}
-
-/**
- * Returns the lowest of three values.
- */
-s16 min_3(s16 a0, s16 a1, s16 a2) {
-    if (a1 < a0) {
-        a0 = a1;
-    }
-
-    if (a2 < a0) {
-        a0 = a2;
-    }
-
-    return a0;
-}
-
-/**
- * Returns the highest of three values.
- */
-s16 max_3(s16 a0, s16 a1, s16 a2) {
-    if (a1 > a0) {
-        a0 = a1;
-    }
-
-    if (a2 > a0) {
-        a0 = a2;
-    }
-
-    return a0;
 }
 
 /**
@@ -530,10 +500,10 @@ void gravity_transform_surfaces(void) {
         vec3s_copy(v1,surf->vertex1);
         vec3s_copy(v2,surf->vertex2);
         vec3s_copy(v3,surf->vertex3);
-        mtxf_mul_vec3f(gNormalTransformMatrix,n);
-        mtxf_mul_vec3s(gGravityTransformMatrix,v1);
-        mtxf_mul_vec3s(gGravityTransformMatrix,v2);
-        mtxf_mul_vec3s(gGravityTransformMatrix,v3);
+        mtxf_mul_vec3f(gWorldToLocalGravRotationMtx,n);
+        mtxf_mul_vec3s(gWorldToLocalGravTransformMtx,v1);
+        mtxf_mul_vec3s(gWorldToLocalGravTransformMtx,v2);
+        mtxf_mul_vec3s(gWorldToLocalGravTransformMtx,v3);
         
         if (n[1] > 0.01) {
             listIndex = SURF_FLOOR;

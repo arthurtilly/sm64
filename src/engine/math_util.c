@@ -15,10 +15,10 @@ float gSplineKeyframeFraction;
 int gSplineState;
 
 Vec3f gGravityVector;
-Mat4 gGravityTransformMatrix;
-Mat4 gGravityInverseMatrix;
-Mat4 gNormalTransformMatrix;
-Mat4 gGravityRotInverseMatrix;
+Mat4 gWorldToLocalGravTransformMtx;
+Mat4 gWorldToLocalGravRotationMtx;
+Mat4 gLocalToWorldGravTransformMtx;
+Mat4 gLocalToWorldGravRotationMtx;
 
 // These functions have bogus return values.
 // Disable the compiler warning.
@@ -480,111 +480,95 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
     mtx[3][3] = 1;
 }
 
-static f32 det_mat2(f32 a, f32 b, f32 c, f32 d) {
-    return a*d - b*c;
-}
+#define g_wtl gWorldToLocalGravTransformMtx
+#define g_ltw gLocalToWorldGravTransformMtx
 
-#define gt gGravityTransformMatrix
-#define gt_i gGravityInverseMatrix
-
-void create_gravity_transform_matrix(void) { // up must be normalized
-    Vec3f pos;
-    Mat4 tl;
-    //f32 a,b,c,d,e,f,g,h,i;
-    
-    vec3f_set(pos, -gMarioObject->oPosX, -gMarioObject->oPosY, -gMarioObject->oPosZ);
-
-/**
-    a = gt_i[0][0];
-    b = gt_i[0][1];
-    c = gt_i[0][2];
-    d = gt_i[1][0];
-    e = gt_i[1][1];
-    f = gt_i[1][2];
-    g = gt_i[2][0];
-    h = gt_i[2][1];
-    i = gt_i[2][2];
-    print_text_fmt_int(100,150,"DET %d",(s32)((a*e*i + b*f*g + c*d*h - c*e*g - a*f*h - b*d*i)*100));
-    **/
-
-    // Create inverse of the matrix that rotates from 0,1,0 to gravity vector
-    // This matrix does the opposite: rotates from gravity vector to 0,1,0
-    gt[0][0] = det_mat2(gt_i[1][1],gt_i[2][1],gt_i[1][2],gt_i[2][2]);
-    gt[0][1] = -det_mat2(gt_i[0][1],gt_i[2][1],gt_i[0][2],gt_i[2][2]);
-    gt[0][2] = det_mat2(gt_i[0][1],gt_i[1][1],gt_i[0][2],gt_i[1][2]);
-    gt[0][3] = 0;
-    
-    gt[1][0] = -det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][2],gt_i[2][2]);
-    gt[1][1] = det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][2],gt_i[2][2]);
-    gt[1][2] = -det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][2],gt_i[1][2]);
-    gt[1][3] = 0;
-    
-    gt[2][0] = det_mat2(gt_i[1][0],gt_i[2][0],gt_i[1][1],gt_i[2][1]);
-    gt[2][1] = -det_mat2(gt_i[0][0],gt_i[2][0],gt_i[0][1],gt_i[2][1]);
-    gt[2][2] = det_mat2(gt_i[0][0],gt_i[1][0],gt_i[0][1],gt_i[1][1]);
-    gt[2][3] = 0;
-    
-    gt[3][0] = 0;
-    gt[3][1] = 0;
-    gt[3][2] = 0;
-    gt[3][3] = 1;
-    
-    mtxf_copy(gNormalTransformMatrix, gt);
-    
-    // Add translation from Mario pos to origin
-    mtxf_translate(tl, pos);
-    mtxf_mul(gt, tl, gt);
-}
-
-s32 sign(f32 a) {
-    return (a>=0 ? 1 : -1);
-}
-
-void create_gravity_matrices(void) {
+// Creates matrix that transforms from local collision co-ordintes to global world coordinates
+void create_local_to_world_transform_matrix(void) {
     Vec3f xColumn, zColumn, forward;
     
     vec3f_normalize(gGravityVector);
     
-    // Creates matrix that rotates from 0,1,0 to gravity vector
-    //vec3f_set(forward, sins(gMarioState->faceAngle[1]), -sign(up[1]) * (sins(gMarioState->faceAngle[1])*up[0] + coss(gMarioState->faceAngle[1])*up[2]), coss(gMarioState->faceAngle[1]));
-    vec3f_set(forward, 0, -sign(gGravityVector[1]) * gGravityVector[2], 1);
+    // No idea how this vector works but it does through trial and error lmao
+    vec3f_set(forward, 0, gGravityVector[2] * (gGravityVector[1] >= 0 ? -1 : 1), 1);
 
+    // Normalize gravity vector
     vec3f_normalize(forward);
         
+    // Create orthogonal cardinal axes for global coordinates based on the gravity vector
     vec3f_cross(xColumn, gGravityVector, forward);
     vec3f_normalize(xColumn);
     vec3f_cross(zColumn, xColumn, gGravityVector);
     vec3f_normalize(zColumn);
     
-    //if (up[1] <= 0) vec3f_set(yColumn, -yColumn[0], -yColumn[1], -yColumn[2]);
-    
-    gt_i[0][0] = xColumn[0];
-    gt_i[0][1] = xColumn[1];
-    gt_i[0][2] = xColumn[2];
-    gt_i[3][0] = 0;
+    // Create the rotational part of the matrix that will rotate <0, 1, 0> to gGravityVector
+    g_ltw[0][0] = xColumn[0];
+    g_ltw[0][1] = xColumn[1];
+    g_ltw[0][2] = xColumn[2];
+    g_ltw[3][0] = 0;
 
-    gt_i[1][0] = gGravityVector[0];
-    gt_i[1][1] = gGravityVector[1];
-    gt_i[1][2] = gGravityVector[2];
-    gt_i[3][1] = 0;
+    g_ltw[1][0] = gGravityVector[0];
+    g_ltw[1][1] = gGravityVector[1];
+    g_ltw[1][2] = gGravityVector[2];
+    g_ltw[3][1] = 0;
 
-    gt_i[2][0] = zColumn[0];
-    gt_i[2][1] = zColumn[1];
-    gt_i[2][2] = zColumn[2];
-    gt_i[3][2] = 0;
+    g_ltw[2][0] = zColumn[0];
+    g_ltw[2][1] = zColumn[1];
+    g_ltw[2][2] = zColumn[2];
+    g_ltw[3][2] = 0;
 
-    gt_i[0][3] = 0;
-    gt_i[1][3] = 0;
-    gt_i[2][3] = 0;
-    gt_i[3][3] = 1;
+    g_ltw[0][3] = 0;
+    g_ltw[1][3] = 0;
+    g_ltw[2][3] = 0;
+    g_ltw[3][3] = 1;
     
-    mtxf_copy(gGravityRotInverseMatrix, gt_i);
-    create_gravity_transform_matrix();
+    // Copy the rotational part into another matrix
+    mtxf_copy(gLocalToWorldGravRotationMtx, g_ltw);
     
-    // Add translation from origin to Mario pos
-    gt_i[3][0] = gMarioObject->oPosX;
-    gt_i[3][1] = gMarioObject->oPosY;
-    gt_i[3][2] = gMarioObject->oPosZ;
+    // Add the translation from origin to Mario's global position
+    // Applied after the rotation since rotation is around the origin
+    g_ltw[3][0] = gMarioObject->oPosX;
+    g_ltw[3][1] = gMarioObject->oPosY;
+    g_ltw[3][2] = gMarioObject->oPosZ;
+}
+
+// Creates a matrix that transforms from global world coordinates to local collision coordinates
+// Make sure this is called after create_local_to_world_transform_matrix
+void create_world_to_local_transform_matrix(void) {
+    Vec3f pos;
+    Mat4 tl;
+    
+    vec3f_set(pos, -gMarioObject->oPosX, -gMarioObject->oPosY, -gMarioObject->oPosZ);
+
+    // Create an inverse of the rotational part of the other matrix
+    // Because it is only a rotation, the determinant is always 1
+    g_wtl[0][0] = g_ltw[1][1] * g_ltw[2][2] - g_ltw[2][1] * g_ltw[1][2];
+    g_wtl[0][1] = g_ltw[2][1] * g_ltw[0][2] - g_ltw[0][1] * g_ltw[2][2];
+    g_wtl[0][2] = g_ltw[0][1] * g_ltw[1][2] - g_ltw[1][1] * g_ltw[0][2];
+    g_wtl[0][3] = 0;
+    
+    g_wtl[1][0] = g_ltw[2][0] * g_ltw[1][2] - g_ltw[1][0] * g_ltw[2][2];
+    g_wtl[1][1] = g_ltw[0][0] * g_ltw[2][2] - g_ltw[2][0] * g_ltw[0][2];
+    g_wtl[1][2] = g_ltw[1][0] * g_ltw[0][2] - g_ltw[0][0] * g_ltw[1][2];
+    g_wtl[1][3] = 0;
+    
+    g_wtl[2][0] = g_ltw[1][0] * g_ltw[2][1] - g_ltw[2][0] * g_ltw[1][1];
+    g_wtl[2][1] = g_ltw[2][0] * g_ltw[0][1] - g_ltw[0][0] * g_ltw[2][1];
+    g_wtl[2][2] = g_ltw[0][0] * g_ltw[1][1] - g_ltw[1][0] * g_ltw[0][1];
+    g_wtl[2][3] = 0;
+    
+    g_wtl[3][0] = 0;
+    g_wtl[3][1] = 0;
+    g_wtl[3][2] = 0;
+    g_wtl[3][3] = 1;
+    
+    // Copy the rotational part into another matrix
+    mtxf_copy(gWorldToLocalGravRotationMtx, g_wtl);
+    
+    // Add the translation from Mario's global position to the origin
+    // Applied before the rotation since rotation is around the origin
+    mtxf_translate(tl, pos);
+    mtxf_mul(g_wtl, tl, g_wtl);
 }
 
 /**

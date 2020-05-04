@@ -240,12 +240,12 @@ void copy_mario_state_to_object(void) {
     gCurrentObject->oPosZ = gMarioStates[i].pos[2];
     
     vec3f_copy(&gCurrentObject->oPosX, gMarioStates[i].pos);
-    mtxf_mul_vec3f(gGravityInverseMatrix, &gCurrentObject->oPosX);
+    mtxf_mul_vec3f(gLocalToWorldGravTransformMtx, &gCurrentObject->oPosX);
 
     vec3f_copy(gCurrentObject->header.gfx.pos, &gCurrentObject->oPosX);
     
     // Transform Mario
-    mtxf_copy(gCurrentObject->transform,gGravityInverseMatrix);
+    mtxf_copy(gCurrentObject->transform,gLocalToWorldGravTransformMtx);
     // Apply the movement Mario has done in the frame (gMarioStates[i].pos) and rotate him 
     mtxf_rotate_zxy_and_translate(transfMat, gMarioStates[i].pos, gCurrentObject->header.gfx.angle);
     // Combine with gravity transform matrix
@@ -279,17 +279,20 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
     }
 }
 
+// Used for conserving Mario's velocity and yaw through gravity switching.
+Vec3f marioVelGrav;
+Vec3f marioAngGrav;
+
+// Called here instead of in execute_mario_action
+extern void update_mario_info_for_cam(struct MarioState *);
+
 /**
  * Mario's primary behavior update function.
  */
-Vec3f marioVelGrav;
-Vec3f marioAngGrav;
- 
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
-    s16 angToFvel;
-    struct Object *obj;
+    s16 angToFvel; f32 marioSpeed;
 
     clear_dynamic_and_transformed_surfaces();
     
@@ -297,17 +300,26 @@ void bhv_mario_update(void) {
         vec3f_copy(gGravityVector,&gMarioObject->oPosX);
     
     // Create the matrices from the gravity vector
-    create_gravity_matrices();
+    create_local_to_world_transform_matrix();
+    create_world_to_local_transform_matrix();
     
-    // Sort out Mario's angle and pos
-    mtxf_mul_vec3f(gNormalTransformMatrix, marioVelGrav);
-    mtxf_mul_vec3f(gNormalTransformMatrix, marioAngGrav);
+    // Rotate the velocity and angle stored last frame back into local coordinates
+    mtxf_mul_vec3f(gWorldToLocalGravRotationMtx, marioVelGrav);
+    mtxf_mul_vec3f(gWorldToLocalGravRotationMtx, marioAngGrav);
+    
+    // Copy velocity
     vec3f_copy(gMarioState->vel, marioVelGrav);
+    gMarioState->slideVelX = gMarioState->vel[0];
+    gMarioState->slideVelZ = gMarioState->vel[2];
 
+    // Copy forward velocity and yaw
     if (gMarioState->forwardVel != 0.f) {
         gMarioState->faceAngle[1] = atan2s(marioAngGrav[2], marioAngGrav[0]);
+        
         angToFvel = atan2s(marioVelGrav[2], marioVelGrav[0]) - gMarioState->faceAngle[1];
-        gMarioState->forwardVel = sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]) * coss(angToFvel);
+        marioSpeed = sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]);
+        
+        gMarioState->forwardVel = marioSpeed * coss(angToFvel);
     }
     
     // Recalculate collision tris
@@ -328,11 +340,11 @@ void bhv_mario_update(void) {
     
     update_mario_info_for_cam(gMarioState);
     
-    // Transform angle and pos into global coordinates for use next frame
+    // Rotate angle and pos into world coordinates for use next frame
     vec3f_set(marioVelGrav,gMarioState->vel[0], gMarioState->vel[1], gMarioState->vel[2]);
     vec3f_set(marioAngGrav,sins(gMarioState->faceAngle[1]), 0, coss(gMarioState->faceAngle[1]));
-    mtxf_mul_vec3f(gGravityRotInverseMatrix, marioVelGrav);
-    mtxf_mul_vec3f(gGravityRotInverseMatrix, marioAngGrav);
+    mtxf_mul_vec3f(gLocalToWorldGravRotationMtx, marioVelGrav);
+    mtxf_mul_vec3f(gLocalToWorldGravRotationMtx, marioAngGrav);
 
     i = 0;
     while (sParticleTypes[i].particleFlag != 0) {
@@ -685,7 +697,6 @@ static u16 unused_get_elapsed_time(u64 *cycleCounts, s32 index) {
  */
 void update_objects(UNUSED s32 unused) {
     s64 cycleCounts[30];
-    Vec3f up;
 
     cycleCounts[0] = get_current_clock();
 

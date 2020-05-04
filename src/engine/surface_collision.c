@@ -11,6 +11,31 @@
 #include "game/object_list_processor.h"
 #include "engine/math_util.h"
 
+// Moved here from surface_load.c
+s16 min_3(s16 a0, s16 a1, s16 a2) {
+    if (a1 < a0) {
+        a0 = a1;
+    }
+
+    if (a2 < a0) {
+        a0 = a2;
+    }
+
+    return a0;
+}
+
+s16 max_3(s16 a0, s16 a1, s16 a2) {
+    if (a1 > a0) {
+        a0 = a1;
+    }
+
+    if (a2 > a0) {
+        a0 = a2;
+    }
+
+    return a0;
+}
+
 /**************************************************
  *                      WALLS                      *
  **************************************************/
