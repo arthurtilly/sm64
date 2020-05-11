@@ -1311,19 +1311,7 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     }
 
     if (m->intendedMag > 0.0f) {
-        s16 yawAdjust;
-        // cringe!
-        if (gGravityVector[1] >= 0) {
-            yawAdjust = atan2s(gGravityVector[2], gGravityVector[0]) - m->area->camera->yaw;
-            m->intendedYaw = atan2s(-controller->stickY, controller->stickX);
-            m->intendedYaw += m->area->camera->yaw;
-            m->intendedYaw += yawAdjust * (1.f - gGravityVector[1]);
-        } else {
-            yawAdjust = atan2s(gGravityVector[2], gGravityVector[0]) - m->area->camera->yaw;
-            m->intendedYaw = atan2s(-controller->stickY, controller->stickX) ;
-            m->intendedYaw -= 0x8000 + atan2s(gGravityVector[2], gGravityVector[0]);
-        }
-
+        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
         m->input |= INPUT_NONZERO_ANALOG;
     } else {
         m->intendedYaw = m->faceAngle[1];
@@ -1745,6 +1733,7 @@ s32 execute_mario_action(UNUSED struct Object *o) {
         squish_mario_model(gMarioState);
         set_submerged_cam_preset_and_spawn_bubbles(gMarioState);
         update_mario_health(gMarioState);
+        update_mario_info_for_cam(gMarioState);
         mario_update_hitbox_and_cap_model(gMarioState);
 
         // Both of the wind handling portions play wind audio only in

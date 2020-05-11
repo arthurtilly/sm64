@@ -295,8 +295,12 @@ void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
     s16 angToFvel; f32 marioSpeed;
+    s16 yawChange;
 
     clear_dynamic_and_transformed_surfaces();
+
+    if (gCurrLevelNum == LEVEL_WF)
+        vec3f_copy(gGravityVector,&gMarioObject->oPosX);
 
     // Create the matrices from the gravity vector
     create_local_to_world_transform_matrix();
@@ -310,6 +314,8 @@ void bhv_mario_update(void) {
     vec3f_copy(gMarioState->vel, marioVelGrav);
     gMarioState->slideVelX = gMarioState->vel[0];
     gMarioState->slideVelZ = gMarioState->vel[2];
+    
+    yawChange = gMarioState->faceAngle[1];
 
     // Copy forward velocity and yaw
     if (gMarioState->forwardVel != 0.f) {
@@ -320,6 +326,8 @@ void bhv_mario_update(void) {
 
         gMarioState->forwardVel = marioSpeed * coss(angToFvel);
     }
+    
+    yawChange = gMarioState->faceAngle[1] - yawChange;
 
     // Recalculate collision tris
     create_transformed_surfaces();
@@ -337,7 +345,24 @@ void bhv_mario_update(void) {
     // to sync it with the mario object
     copy_mario_state_to_object();
 
-    update_mario_info_for_cam(gMarioState);
+    // Update the camera here so we can transform it based on Mario's gravity matrix
+    if ((gCurrentArea != NULL) && gUpdateCamera) {
+        f32 dist; s16 pitch, yaw;
+        
+        vec3f_get_dist_and_angle(gLakituState.goalFocus, gLakituState.goalPos, &dist, &pitch, &yaw);
+        vec3f_set_dist_and_angle(gLakituState.goalFocus, gLakituState.goalPos, dist, pitch, yaw + yawChange);
+        
+        vec3f_get_dist_and_angle(gLakituState.curFocus, gLakituState.curPos, &dist, &pitch, &yaw);
+        vec3f_set_dist_and_angle(gLakituState.curFocus, gLakituState.curPos, dist, pitch, yaw + yawChange);
+        
+        vec3f_get_dist_and_angle(gLakituState.focus, gLakituState.pos, &dist, &pitch, &yaw);
+        vec3f_set_dist_and_angle(gLakituState.focus, gLakituState.pos, dist, pitch, yaw + yawChange);
+        
+        gLakituState.yaw += yawChange;
+        gLakituState.nextYaw += yawChange;
+
+        update_camera(gCurrentArea->camera);
+    }
 
     // Rotate angle and pos into world coordinates for use next frame
     vec3f_set(marioVelGrav,gMarioState->vel[0], gMarioState->vel[1], gMarioState->vel[2]);

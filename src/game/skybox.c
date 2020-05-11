@@ -286,10 +286,20 @@ Gfx *init_skybox_display_list(s8 player, s8 background, s8 colorIndex) {
 Gfx *create_skybox_facing_camera(s8 player, s8 background, f32 fov,
                                     f32 posX, f32 posY, f32 posZ,
                                     f32 focX, f32 focY, f32 focZ) {
-    f32 cameraFaceX = focX - posX;
-    f32 cameraFaceY = focY - posY;
-    f32 cameraFaceZ = focZ - posZ;
+
+    Vec3f pos, foc;
+    f32 cameraFaceX, cameraFaceY, cameraFaceZ;
     s8 colorIndex = 1;
+
+    vec3f_set(pos, posX, posY, posZ);
+    vec3f_set(foc, focX, focY, focZ);
+
+    mtxf_mul_vec3f(gLocalToWorldGravTransformMtx, pos);
+    mtxf_mul_vec3f(gLocalToWorldGravTransformMtx, foc);
+
+    cameraFaceX = foc[0] - pos[0];
+    cameraFaceY = foc[1] - pos[1];
+    cameraFaceZ = foc[2] - pos[2];
 
     // If the first star is collected in JRB, make the sky darker and slightly green
     if (background == 8 && !(save_file_get_star_flags(gCurrSaveFileNum - 1, COURSE_JRB - 1) & 1)) {
