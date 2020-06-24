@@ -1,5 +1,4 @@
-# Super Mario 64
-
+PENIS
 This repo contains a full decompilation of Super Mario 64 (J), (U), and (E).
 The source and data have been decompiled but complete naming and documentation
 all of the code and data is still a work in progress. Decompiling the Shindou ROM
