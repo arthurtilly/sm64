@@ -36,22 +36,11 @@ s32 bhv_motos_do_throw_mario() {
 void bhv_motos_hand_loop(void) {
     o->oParentRelativePosY = -30.f;
     o->oParentRelativePosX = -70.f; // Changed relative pos to make Mario fit in the hand better
-    o->oMoveAngleYaw = o->parentObj->oMoveAngleYaw;
-    
-    switch (o->parentObj->oChuckyaUnk88) {
-        case 0:
-            break;
-        case 1:
-            obj_set_gfx_pos_at_obj_pos(gMarioObject, o);
-            vec3f_copy(gMarioState->pos, gMarioObject->header.gfx.pos); // Added to fix camera
-            break;
-        case 2:
-            gMarioObject->oInteractStatus |= (INT_STATUS_MARIO_UNK2 + INT_STATUS_MARIO_UNK6);
-            gMarioState->forwardVel = 50.f;
-            gMarioState->vel[1] = 30.f; // Throw velocity changed (was 50 horiz, 0 vert)
-            o->parentObj->oChuckyaUnk88 = 0;
-            break;
-    }
+
+    common_anchor_mario_behavior(50.0f, 30.0f, 64); // Used common func instead of repeating code
+    // Also vert speed increased from 0 to 50
+    if (o->oChuckyaUnk88 == 1)
+        vec3f_copy(gMarioState->pos, gMarioObject->header.gfx.pos); // Added to fix camera
 }
 
 void bhv_motos_wait(void) {
@@ -139,7 +128,7 @@ void bhv_motos_recover(void) {
 
 void bhv_motos_death(void) {
     // Taken from bully code to handle death
-    if (obj_lava_death() == 1) {
+    if (obj_lava_death()) {
         struct Object *coin = spawn_object(o, MODEL_BLUE_COIN, bhvBlueCoinMotos);
         cur_obj_play_sound_2(SOUND_GENERAL_COIN_SPURT_2);
         coin->oForwardVel = 10.0f;
