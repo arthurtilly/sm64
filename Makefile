@@ -212,7 +212,8 @@ SOUND_OBJ_FILES := $(SOUND_BIN_DIR)/sound_data.o
 # Object files
 O_FILES := $(foreach file,$(C_FILES),$(BUILD_DIR)/$(file:.c=.o)) \
            $(foreach file,$(S_FILES),$(BUILD_DIR)/$(file:.s=.o)) \
-           $(foreach file,$(GENERATED_C_FILES),$(file:.c=.o))
+           $(foreach file,$(GENERATED_C_FILES),$(file:.c=.o)) rsp/hvqm2sp1.o rsp/hvqm2sp2.o \
+           $(BUILD_DIR)/assets/hvqm.o
 
 ULTRA_O_FILES := $(foreach file,$(ULTRA_S_FILES),$(BUILD_DIR)/$(file:.s=.o)) \
                  $(foreach file,$(ULTRA_C_FILES),$(BUILD_DIR)/$(file:.c=.o))
@@ -520,6 +521,9 @@ $(BUILD_DIR)/assets/mario_anim_data.c: $(wildcard assets/anims/*.inc.c)
 
 $(BUILD_DIR)/assets/demo_data.c: assets/demo_data.json $(wildcard assets/demos/*.bin)
 	$(PYTHON) tools/demo_data_converter.py assets/demo_data.json $(VERSION_CFLAGS) > $@
+    
+$(BUILD_DIR)/assets/%.o: $(BUILD_DIR)/assets/%.s
+	$(AS) $(ASFLAGS) -o $@ $<
 
 ifeq ($(COMPILER),ido)
 # Source code
@@ -603,7 +607,7 @@ $(BUILD_DIR)/libultra.a: $(ULTRA_O_FILES)
 $(BUILD_DIR)/libgoddard.a: $(GODDARD_O_FILES)
 	$(AR) rcs -o $@ $(GODDARD_O_FILES)
 
-$(ELF): $(O_FILES) $(MIO0_OBJ_FILES) $(SOUND_OBJ_FILES) $(SEG_FILES) $(BUILD_DIR)/$(LD_SCRIPT) undefined_syms.txt $(BUILD_DIR)/libultra.a $(BUILD_DIR)/libgoddard.a
+$(ELF): $(O_FILES) $(MIO0_OBJ_FILES) $(SOUND_OBJ_FILES) $(SEG_FILES) $(BUILD_DIR)/$(LD_SCRIPT) undefined_syms.txt $(BUILD_DIR)/libultra.a lib/hvqm/libhvqm2.a $(BUILD_DIR)/libgoddard.a
 	$(LD) -L $(BUILD_DIR) $(LDFLAGS) -o $@ $(O_FILES)$(LIBS) -lultra -lgoddard
 
 $(ROM): $(ELF)

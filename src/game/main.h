@@ -56,6 +56,7 @@ extern struct StructSH8031D9B0 gCurrRumbleSettings;
 
 extern struct VblankHandler *gVblankHandler1;
 extern struct VblankHandler *gVblankHandler2;
+extern struct VblankHandler *gVblankHandler3;
 extern struct SPTask *gActiveSPTask;
 extern u32 sNumVblanks;
 extern s8 gResetTimer;

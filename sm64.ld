@@ -92,6 +92,13 @@ SECTIONS
       BUILD_DIR/asm/entry.o(.text);
       BUILD_DIR/src/game/crash_screen.o(.text);
       BUILD_DIR/src/game/main.o(.text);
+      rsp/hvqm2sp1.o(.text);
+      rsp/hvqm2sp2.o(.text);
+      lib/hvqm/libhvqm2.a:hvqm2dec1.o(.text);
+      lib/hvqm/libhvqm2.a:hvqm2dec2.o(.text);
+      lib/hvqm/libhvqm2.a:hvqm2decSP1.o(.text);
+      lib/hvqm/libhvqm2.a:hvqm2decSP2.o(.text);
+      lib/hvqm/libhvqm2.a:adpcmdec.o(.text);
       BUILD_DIR/src/game/game_init.o(.text);
       BUILD_DIR/src/game/sound_init.o(.text);
 #ifdef VERSION_SH
@@ -344,6 +351,7 @@ SECTIONS
       BUILD_DIR/libultra.a:__osSiRawWriteIo.o(.text);
       BUILD_DIR/libultra.a:osMapTLBRdb.o(.text);
       BUILD_DIR/libultra.a:osPiRawReadIo.o(.text);
+      BUILD_DIR/libultra.a:func_802F71F0.o(.text)
 #if VERSION_JP
       . += 0x40;
 #endif
@@ -378,6 +386,9 @@ SECTIONS
       BUILD_DIR/src/game/crash_screen.o(.data*);
       BUILD_DIR/src/game/main.o(.data*);
       BUILD_DIR/src/game/game_init.o(.data*);
+      rsp/hvqm2sp1.o(.data*);
+      rsp/hvqm2sp2.o(.data*);
+      lib/hvqm/libhvqm2.a(.data*);
       BUILD_DIR/src/game/sound_init.o(.data*);
       BUILD_DIR/src/game/level_update.o(.data*);
       BUILD_DIR/src/game/interaction.o(.data*);
@@ -467,6 +478,9 @@ SECTIONS
       /* rodata */
       BUILD_DIR/src/game/crash_screen.o(.rodata*);
       BUILD_DIR/src/game/main.o(.rodata*);
+      rsp/hvqm2sp1.o(.rodata*);
+      rsp/hvqm2sp2.o(.rodata*);
+      lib/hvqm/libhvqm2.a(.rodata*);
       BUILD_DIR/src/game/game_init.o(.rodata*);
       BUILD_DIR/src/game/sound_init.o(.rodata*);
       BUILD_DIR/src/game/level_update.o(.rodata*);
@@ -558,6 +572,9 @@ SECTIONS
    {
       BUILD_DIR/src/game/crash_screen.o(.bss*);
       BUILD_DIR/src/game/main.o(.bss*);
+      rsp/hvqm2sp1.o(.bss*);
+      rsp/hvqm2sp2.o(.bss*);
+      lib/hvqm/libhvqm2.a(.bss*);
       BUILD_DIR/src/game/game_init.o(.bss*);
       BUILD_DIR/src/game/sound_init.o(.bss*);
       BUILD_DIR/src/game/level_update.o(.bss*);
@@ -976,6 +993,12 @@ SECTIONS
       BUILD_DIR/sound/sound_data.o(.data);
    }
    END_SEG(assets)
+   
+   BEGIN_SEG(hvqm, __romPos)
+   {
+      BUILD_DIR/assets/hvqm.o(.data*);
+   }
+   END_SEG(hvqm)
 
    /* Discard everything not specifically mentioned above. */
    /DISCARD/ :
