@@ -48,7 +48,7 @@ UNUSED u8 filler80339D30[0x90];
 int unused8032C690 = 0;
 u32 gGlobalTimer = 0;
 
-static u16 sCurrFBNum = 0;
+u16 sCurrFBNum = 0;
 u16 frameBufferIndex = 0;
 void (*D_8032C6A0)(void) = NULL;
 struct Controller *gPlayer1Controller = &gControllers[0];
@@ -59,6 +59,7 @@ struct DemoInput *gCurrDemoInput = NULL; // demo input sequence
 u16 gDemoInputListID = 0;
 struct DemoInput gRecordedDemoInput = { 0 }; // possibly removed in EU. TODO: Check
 
+extern void read_controller_inputs(void);
 #include "include/timekeeper.inc.c"
 #include "include/hvqm.inc.c"
 
@@ -612,6 +613,7 @@ void thread5_game_loop(UNUSED void *arg) {
             draw_reset_bars();
             continue;
         }
+        
         profiler_log_thread5_time(THREAD5_START);
 
         // if any controllers are plugged in, start read the data for when
@@ -626,6 +628,7 @@ void thread5_game_loop(UNUSED void *arg) {
         audio_game_loop_tick();
         config_gfx_pool();
         read_controller_inputs();
+
         addr = level_script_execute(addr);
         display_and_vsync();
 
@@ -634,6 +637,11 @@ void thread5_game_loop(UNUSED void *arg) {
             // subtract the end of the gfx pool with the display list to obtain the
             // amount of free space remaining.
             print_text_fmt_int(180, 20, "BUF %d", gGfxPoolEnd - (u8 *) gDisplayListHead);
+        }
+        
+        if (gPlayer1Controller->buttonPressed & L_TRIG) {
+            osStartThread(&hvqmThread);
+            osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
         }
     }
 }
