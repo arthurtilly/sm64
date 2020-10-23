@@ -298,6 +298,8 @@ void bhv_mario_update(void) {
     s16 yawChange;
 
     clear_dynamic_and_transformed_surfaces();
+    
+    vec3f_set(gGravityVector, 0, 1, 0);
 
     if (gCurrLevelNum == LEVEL_WF)
         vec3f_copy(gGravityVector,&gMarioObject->oPosX);

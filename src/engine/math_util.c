@@ -493,14 +493,17 @@ void create_local_to_world_transform_matrix(void) {
 
     vec3f_normalize(gGravityVector);
 
-    // No idea how this vector works but it does through trial and error lmao
-    vec3f_set(forward, 0, gGravityVector[2] * (gGravityVector[1] >= 0 ? -1 : 1), 1);
+    if ((gGravityVector[1] > 0.9999f) || (gGravityVector[1] < -0.9999f)) {
+        vec3f_set(forward, 0, 0, 1);
+        vec3f_cross(xColumn, forward, gGravityVector);
+    } else
+        vec3f_set(xColumn, -gGravityVector[1]*gGravityVector[0], 1-gGravityVector[1]*gGravityVector[1], -gGravityVector[1]*gGravityVector[2]);
 
     // Normalize gravity vector
-    vec3f_normalize(forward);
+    //vec3f_normalize(forward);
 
     // Create orthogonal cardinal axes for global coordinates based on the gravity vector
-    vec3f_cross(xColumn, gGravityVector, forward);
+    //vec3f_cross(xColumn, gGravityVector, forward);
     vec3f_normalize(xColumn);
     vec3f_cross(zColumn, xColumn, gGravityVector);
     vec3f_normalize(zColumn);
