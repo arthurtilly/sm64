@@ -14,8 +14,6 @@ struct ObjectHitbox sSparkleSpawnStarHitbox = {
 
 void bhv_spawned_star_init(void) {
     s32 sp24;
-    if (!(o->oInteractionSubtype & INT_SUBTYPE_NO_EXIT))
-        o->oBehParams = o->parentObj->oBehParams;
     sp24 = (o->oBehParams >> 24) & 0xFF;
     if (bit_shift_left(sp24) & save_file_get_star_flags(gCurrSaveFileNum - 1, gCurrCourseNum - 1))
         cur_obj_set_model(MODEL_TRANSPARENT_STAR);
@@ -77,11 +75,7 @@ void bhv_spawned_star_loop(void) {
             o->oVelY = 20.0f;
             o->oGravity = -1.0f;
             if (o->oInteractionSubtype & INT_SUBTYPE_NO_EXIT)
-#ifdef VERSION_JP
-                play_power_star_jingle(FALSE);
-#else
                 play_power_star_jingle(TRUE);
-#endif
             else
                 play_power_star_jingle(TRUE);
         }

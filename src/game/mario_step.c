@@ -394,9 +394,6 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
 
     vec3f_copy(nextPos, intendedPos);
 
-    upperWall = resolve_and_return_wall_collisions(nextPos, 150.0f, 50.0f);
-    lowerWall = resolve_and_return_wall_collisions(nextPos, 30.0f, 50.0f);
-
     floorHeight = find_floor(nextPos[0], nextPos[1], nextPos[2], &floor);
     ceilHeight = vec3f_find_ceil(nextPos, floorHeight, &ceil);
 
@@ -438,6 +435,9 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
         m->pos[1] = floorHeight;
         return AIR_STEP_LANDED;
     }
+    
+    upperWall = resolve_and_return_wall_collisions(nextPos, 150.0f, 50.0f);
+    lowerWall = resolve_and_return_wall_collisions(nextPos, 30.0f, 50.0f);
 
     if (nextPos[1] + 160.0f > ceilHeight) {
         if (m->vel[1] >= 0.0f) {
@@ -617,7 +617,9 @@ s32 perform_air_step(struct MarioState *m, u32 stepArg) {
     stepResult = perform_air_quarter_step(m, intendedPos, stepArg);
 
     if (m->vel[1] >= 0.0f) {
-        m->peakHeight = m->pos[1];
+        m->peakHeight = 0;
+    } else {
+        m->peakHeight -= m->vel[1];
     }
 
     m->terrainSoundAddend = mario_get_terrain_sound_addend(m);

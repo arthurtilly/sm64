@@ -226,8 +226,8 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
         return numCollisions;
     }
 
-    node = gDynamicSurfaces.next;
-    numCollisions += find_wall_collisions_from_list(node, colData);
+    //node = gDynamicSurfaces.next;
+    //numCollisions += find_wall_collisions_from_list(node, colData);
 
     node = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next : gStaticSurfaces.next);
     numCollisions += find_wall_collisions_from_list(node, colData);
@@ -349,8 +349,8 @@ f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface **pceil) {
     }
 
     // Check for surfaces belonging to objects.
-    surfaceList = gDynamicSurfaces.next;
-    dynamicCeil = find_ceil_from_list(surfaceList, x, y, z, &dynamicHeight);
+    //surfaceList = gDynamicSurfaces.next;
+    //dynamicCeil = find_ceil_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
     surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next : gStaticSurfaces.next);
@@ -528,8 +528,8 @@ f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor) {
     }
 
     // Check for surfaces belonging to objects.
-    surfaceList = gDynamicSurfaces.next;
-    dynamicFloor = find_floor_from_list(surfaceList, x, y, z, &dynamicHeight);
+    //surfaceList = gDynamicSurfaces.next;
+    //dynamicFloor = find_floor_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
     surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next : gStaticSurfaces.next);

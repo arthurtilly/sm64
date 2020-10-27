@@ -291,6 +291,12 @@ extern void update_mario_info_for_cam(struct MarioState *);
 /**
  * Mario's primary behavior update function.
  */
+extern struct Controller *gPlayer1Controller;
+s32 grav;
+s32 rotateTimer;
+s32 gravAng = 0;
+extern u32 gGlobalTimer;
+
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
@@ -299,7 +305,28 @@ void bhv_mario_update(void) {
 
     clear_dynamic_and_transformed_surfaces();
     
-    vec3f_set(gGravityVector, 0, 1, 0);
+    if ((gCurrLevelNum == LEVEL_SSL)) {
+        switch (grav) {
+        case 0:
+            vec3f_set(gGravityVector,0,1,0);
+            break;
+        case 1:
+            vec3f_set(gGravityVector,0,-1,0);
+            break;
+        case 2:
+            vec3f_set(gGravityVector,sins(gravAng),0,coss(gravAng));
+            break;
+        }
+        if (gPlayer1Controller->buttonPressed & L_TRIG)
+            grav++;
+        if ((gPlayer1Controller->buttonPressed & U_JPAD) && (!rotateTimer))
+            rotateTimer = 0x10;
+        if (rotateTimer > 0) {
+            gravAng += 0x400;
+            rotateTimer--;
+        }
+        if (grav > 2) grav = 0;
+    }
 
     if (gCurrLevelNum == LEVEL_WF)
         vec3f_copy(gGravityVector,&gMarioObject->oPosX);
@@ -332,7 +359,8 @@ void bhv_mario_update(void) {
     yawChange = gMarioState->faceAngle[1] - yawChange;
 
     // Recalculate collision tris
-    create_transformed_surfaces();
+    create_transformed_surfaces(&gMarioObject->oPosX);
+    
 
     // Since the rotation is centered around Mario's position and so will have no effect,
     // we don't need to apply the whole matrix, just the translation

@@ -473,27 +473,37 @@ void load_area_terrain(s16 index, s16 *data, s8 *surfaceRooms, s16 *macroObjects
  * If not in time stop, clear the surface partitions.
  */
 void clear_dynamic_and_transformed_surfaces(void) {
-    if (!(gTimeStopState & TIME_STOP_ACTIVE)) {
-        gSurfacesAllocated = gNumStaticSurfaces;
-        gSurfaceNodesAllocated = gNumStaticSurfaceNodes;
+    gSurfacesAllocated = gNumStaticSurfaces;
+    gSurfaceNodesAllocated = gNumStaticSurfaceNodes;
 
-        gDynamicSurfaces.next = NULL;
-        gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next = NULL;
-        gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next = NULL;
-        gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next = NULL;
-    }
+        //gDynamicSurfaces.next = NULL;
+    gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next = NULL;
+    gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next = NULL;
+    gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next = NULL;
 }
 
 /**
  * Transform surfaces with a gravity matrix.
  * This will create a new surface for every existing surface.
  */
-void create_transformed_surfaces(void) {
+#define VERTEX_BOX_RADIUS 20000
+ 
+s32 vertex_out_of_box(Vec3s vertex, Vec3s pos) {
+    return (vertex[0] > (pos[0]+VERTEX_BOX_RADIUS)) || (vertex[0] < (pos[0]-VERTEX_BOX_RADIUS)) ||
+           (vertex[1] > (pos[1]+VERTEX_BOX_RADIUS)) || (vertex[1] < (pos[1]-VERTEX_BOX_RADIUS)) ||
+           (vertex[2] > (pos[2]+VERTEX_BOX_RADIUS)) || (vertex[2] < (pos[2]-VERTEX_BOX_RADIUS));
+}
+ 
+void create_transformed_surfaces(Vec3f pos) {
     Vec3s v1,v2,v3;
     Vec3f n;
+    s32 i = 0;
     struct Surface *surf, *newSurf;
     struct SurfaceNode *surfaceNode = gStaticSurfaces.next;
     s32 listIndex;
+    Vec3s marioPos;
+    
+    vec3f_to_vec3s(marioPos, pos);
 
     if (gMarioObject == NULL)
         return;
@@ -504,6 +514,13 @@ void create_transformed_surfaces(void) {
 
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
+        
+        if ((surfaceNode == NULL) && !i) {
+            i = 1;
+            surfaceNode = gDynamicSurfaces.next;
+        }
+        
+        if (vertex_out_of_box(surf->vertex1,marioPos) && vertex_out_of_box(surf->vertex2,marioPos) && vertex_out_of_box(surf->vertex3,marioPos)) continue;
 
         // Transform vertices and normals
         vec3f_copy(n,&surf->normal.x);
@@ -547,6 +564,8 @@ void create_transformed_surfaces(void) {
         newNode->next = list->next;
         list->next = newNode;
     }
+    
+    gDynamicSurfaces.next = NULL;
 }
 
 /**

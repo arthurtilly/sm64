@@ -892,7 +892,7 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             break;
     }
 
-    m->peakHeight = m->pos[1];
+    m->peakHeight = 0;
     m->flags |= MARIO_UNKNOWN_08;
 
     return action;
@@ -1661,6 +1661,7 @@ void mario_update_hitbox_and_cap_model(struct MarioState *m) {
     } else {
         m->marioObj->hitboxHeight = 160.0f;
     }
+    m->marioObj->hitboxDownOffset = 160.f;
 
     if ((m->flags & MARIO_TELEPORTING) && (m->fadeWarpOpacity != 0xFF)) {
         bodyState->modelState &= ~0xFF;
