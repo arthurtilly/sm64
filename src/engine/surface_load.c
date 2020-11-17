@@ -18,7 +18,7 @@
 
 s32 unused8038BE90;
 
-struct SurfaceNode gStaticSurfaces;
+struct SurfaceNode gStaticSurfaces[128];
 struct SurfaceNode gDynamicSurfaces;
 
 SpatialPartitionCell gStaticSurfacePartition;
@@ -82,71 +82,40 @@ static struct Surface *alloc_surface(void) {
  * Clears the static (level) surface partitions for new use.
  */
 static void clear_static_surfaces(void) {
-    gStaticSurfaces.next = NULL;
+    s32 i;
+    for (i = 0; i < 128; i++) {
+        gStaticSurfaces[i].next = NULL;
+    }
 }
 
 /**
- * Every level is split into 16 * 16 cells of surfaces (to limit computing
- * time). This function determines the lower cell for a given x/z position.
- * @param coord The coordinate to test
+ * Returns the lowest of three values.
  */
-static s16 lower_cell_index(s16 coord) {
-    s16 index;
-
-    // Move from range [-0x2000, 0x2000) to [0, 0x4000)
-    coord += 0x2000;
-    if (coord < 0) {
-        coord = 0;
+s16 min_3(s16 a0, s16 a1, s16 a2) {
+    if (a1 < a0) {
+        a0 = a1;
     }
 
-    // [0, 16)
-    index = coord / 0x400;
-
-    // Include extra cell if close to boundary
-    //! Some wall checks are larger than the buffer, meaning wall checks can
-    //  miss walls that are near a cell border.
-    if (coord % 0x400 < 50) {
-        index -= 1;
+    if (a2 < a0) {
+        a0 = a2;
     }
 
-    if (index < 0) {
-        index = 0;
-    }
-
-    // Potentially > 15, but since the upper index is <= 15, not exploitable
-    return index;
+    return a0;
 }
 
 /**
- * Every level is split into 16 * 16 cells of surfaces (to limit computing
- * time). This function determines the upper cell for a given x/z position.
- * @param coord The coordinate to test
+ * Returns the highest of three values.
  */
-static s16 upper_cell_index(s16 coord) {
-    s16 index;
-
-    // Move from range [-0x2000, 0x2000) to [0, 0x4000)
-    coord += 0x2000;
-    if (coord < 0) {
-        coord = 0;
+s16 max_3(s16 a0, s16 a1, s16 a2) {
+    if (a1 > a0) {
+        a0 = a1;
     }
 
-    // [0, 16)
-    index = coord / 0x400;
-
-    // Include extra cell if close to boundary
-    //! Some wall checks are larger than the buffer, meaning wall checks can
-    //  miss walls that are near a cell border.
-    if (coord % 0x400 > 0x400 - 50) {
-        index += 1;
+    if (a2 > a0) {
+        a0 = a2;
     }
 
-    if (index > 15) {
-        index = 15;
-    }
-
-    // Potentially < 0, but since lower index is >= 0, not exploitable
-    return index;
+    return a0;
 }
 
 /**
@@ -156,20 +125,89 @@ static s16 upper_cell_index(s16 coord) {
  * @param surface The surface to check
  * @param dynamic Boolean determining whether the surface is static or dynamic
  */
-static void add_surface(struct Surface *surface, s32 dynamic) {
+u32 gCellGridX = 5;
+u32 gCellSizeX = 450;
+u32 gCellGridY = 5;
+u32 gCellSizeY = 450;
+u32 gCellGridZ = 5;
+u32 gCellSizeZ = 450;
+
+s16 cell_index_to_array(s16 x, s16 y, s16 z) {
+    return x + gCellGridX * (z + gCellGridZ * y);
+}
+
+s16 get_cell_index(s16 pos, u16 numCells, u32 cellSize, u32 offset) {
+    s16 index;
+    
+    if (numCells == 1) return 0;
+    
+    if (offset == 1) // Lower
+        pos -= 20;
+    else if (offset == 2) // Upper
+        pos += 20;
+    
+    if ((numCells % 2))
+        pos += (cellSize / 2);
+    
+    index = ((f32)pos / cellSize) + (numCells/2);
+
+    if (index < 0)
+        index = 0;
+    else if (index >= numCells)
+        index = numCells - 1;
+
+    return index;
+}
+
+s16 get_cell(Vec3f pos) {
+    return cell_index_to_array(get_cell_index(pos[0], gCellGridX, gCellSizeX, 0),
+                             get_cell_index(pos[1], gCellGridY, gCellSizeY, 0),
+                             get_cell_index(pos[2], gCellGridZ, gCellSizeZ, 0));
+}
+
+static void add_surface_to_cell(s16 cellX, s16 cellY, s16 cellZ, struct Surface *surface) {
     struct SurfaceNode *newNode = alloc_surface_node();
     struct SurfaceNode *list;
-
+    
     newNode->surface = surface;
 
-    if (dynamic) {
+    if (0) {
         list = &gDynamicSurfaces;
     } else {
-        list = &gStaticSurfaces;
+        list = &gStaticSurfaces[cell_index_to_array(cellX, cellY, cellZ)];
     }
 
     newNode->next = list->next;
     list->next = newNode;
+    
+}
+ 
+static void add_surface(struct Surface *surface, s32 dynamic) {
+    s16 minX, minY, minZ, maxX, maxY, maxZ;
+    u16 minCellX, minCellY, minCellZ, maxCellX, maxCellY, maxCellZ;
+    u16 cellZ, cellY, cellX;
+    
+    minX = min_3(surface->vertex1[0], surface->vertex2[0], surface->vertex3[0]);
+    minY = min_3(surface->vertex1[1], surface->vertex2[1], surface->vertex3[1]);
+    minZ = min_3(surface->vertex1[2], surface->vertex2[2], surface->vertex3[2]);
+    maxX = max_3(surface->vertex1[0], surface->vertex2[0], surface->vertex3[0]);
+    maxY = max_3(surface->vertex1[1], surface->vertex2[1], surface->vertex3[1]);
+    maxZ = max_3(surface->vertex1[2], surface->vertex2[2], surface->vertex3[2]);
+    
+    minCellX = get_cell_index(minX, gCellGridX, gCellSizeX, 1);
+    maxCellX = get_cell_index(maxX, gCellGridX, gCellSizeX, 2);
+    minCellY = get_cell_index(minY, gCellGridY, gCellSizeY, 1);
+    maxCellY = get_cell_index(maxY, gCellGridY, gCellSizeY, 2);
+    minCellZ = get_cell_index(minZ, gCellGridZ, gCellSizeZ, 1);
+    maxCellZ = get_cell_index(maxZ, gCellGridZ, gCellSizeZ, 2);
+
+    for (cellZ = minCellZ; cellZ <= maxCellZ; cellZ++) {
+        for (cellY = minCellY; cellY <= maxCellY; cellY++) {
+            for (cellX = minCellX; cellX <= maxCellX; cellX++) {
+                add_surface_to_cell(cellX, cellY, cellZ, surface);
+            }
+        }
+    }
 }
 
 static void stub_surface_load_1(void) {
@@ -499,9 +537,10 @@ void create_transformed_surfaces(Vec3f pos) {
     Vec3f n;
     s32 i = 0;
     struct Surface *surf, *newSurf;
-    struct SurfaceNode *surfaceNode = gStaticSurfaces.next;
+    struct SurfaceNode *surfaceNode = gStaticSurfaces[get_cell(pos)].next;
     s32 listIndex;
     Vec3s marioPos;
+    s32 count = 0;
     
     vec3f_to_vec3s(marioPos, pos);
 
@@ -511,6 +550,8 @@ void create_transformed_surfaces(Vec3f pos) {
     while (surfaceNode != NULL) {
         struct SurfaceNode *newNode = alloc_surface_node();
         struct SurfaceNode *list;
+        
+        count += 1;
 
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
@@ -543,7 +584,7 @@ void create_transformed_surfaces(Vec3f pos) {
 
         // Create the new surface
         newSurf = alloc_surface();
-
+        
         vec3s_copy(newSurf->vertex1, v1);
         vec3s_copy(newSurf->vertex2, v2);
         vec3s_copy(newSurf->vertex3, v3);
@@ -564,6 +605,8 @@ void create_transformed_surfaces(Vec3f pos) {
         newNode->next = list->next;
         list->next = newNode;
     }
+    
+    print_text_fmt_int(100,100,"%d",count);
     
     gDynamicSurfaces.next = NULL;
 }
@@ -654,7 +697,7 @@ void load_object_surfaces(s16 **data, s16 *vertexData) {
 
             surface->flags |= flags;
             surface->room = (s8) room;
-            add_surface(surface, TRUE);
+            //add_surface(surface, TRUE);
         }
 
         if (hasForce) {

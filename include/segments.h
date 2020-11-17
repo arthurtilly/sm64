@@ -11,7 +11,7 @@
  * linker script syntax.
 */
 
-#define USE_EXT_RAM
+//#define USE_EXT_RAM
 
 #ifndef USE_EXT_RAM /* Default: Runs out of memory quickly when importing custom assets. */
 
@@ -20,21 +20,11 @@
 
 #define SEG_GODDARD      0x8016F000
 
-#define SEG_BUFFERS      0x801C1000
+#define SEG_BUFFERS      0x801F1000
 
-#ifdef VERSION_EU
-#define SEG_MAIN         0x80241800 // TODO: Investigate why it's different?
-#elif defined(VERSION_SH)
-#define SEG_MAIN         0x80249000
-#else
-#define SEG_MAIN         0x80246000
-#endif
+#define SEG_MAIN         0x80276000
 
-#ifdef VERSION_EU
-#define SEG_ENGINE       0x8036FF00
-#else
 #define SEG_ENGINE       0x80378800
-#endif
 
 #define SEG_FRAMEBUFFERS 0x8038F800
 

@@ -222,6 +222,15 @@ struct ParticleProperties sParticleTypes[] = {
  * Copy position, velocity, and angle variables from MarioState to the mario
  * object.
  */
+
+extern u32 gCellGridX;
+extern u32 gCellSizeX;
+extern u32 gCellGridY;
+extern u32 gCellSizeY;
+extern u32 gCellGridZ;
+extern u32 gCellSizeZ;
+s16 get_cell_index(s16 pos, u16 numCells, u32 cellSize, u32 lowerIndex);
+ 
 void copy_mario_state_to_object(void) {
     s32 i = 0;
     Mat4 transfMat;
@@ -242,6 +251,14 @@ void copy_mario_state_to_object(void) {
     // Update and transform Mario's object's position
     vec3f_copy(&gCurrentObject->oPosX, gMarioStates[i].pos);
     mtxf_mul_vec3f(gLocalToWorldGravTransformMtx, &gCurrentObject->oPosX);
+
+    print_text_fmt_int(20,20,"%d",get_cell_index(gMarioObject->oPosX, gCellGridX, gCellSizeX, 1));
+    print_text_fmt_int(20,40,"%d",get_cell_index(gMarioObject->oPosX, gCellGridX, gCellSizeX, 2));
+    print_text_fmt_int(40,20,"%d",get_cell_index(gMarioObject->oPosY, gCellGridY, gCellSizeY, 1));
+    print_text_fmt_int(40,40,"%d",get_cell_index(gMarioObject->oPosY, gCellGridY, gCellSizeY, 2));
+    print_text_fmt_int(60,20,"%d",get_cell_index(gMarioObject->oPosZ, gCellGridZ, gCellSizeZ, 1));
+    print_text_fmt_int(60,40,"%d",get_cell_index(gMarioObject->oPosZ, gCellGridZ, gCellSizeZ, 2));
+
 
     // Update Mario's graphical position
     vec3f_copy(gCurrentObject->header.gfx.pos, &gCurrentObject->oPosX);

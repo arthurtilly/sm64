@@ -11,31 +11,6 @@
 #include "game/object_list_processor.h"
 #include "engine/math_util.h"
 
-// Moved here from surface_load.c
-s16 min_3(s16 a0, s16 a1, s16 a2) {
-    if (a1 < a0) {
-        a0 = a1;
-    }
-
-    if (a2 < a0) {
-        a0 = a2;
-    }
-
-    return a0;
-}
-
-s16 max_3(s16 a0, s16 a1, s16 a2) {
-    if (a1 > a0) {
-        a0 = a1;
-    }
-
-    if (a2 > a0) {
-        a0 = a2;
-    }
-
-    return a0;
-}
-
 /**************************************************
  *                      WALLS                      *
  **************************************************/
@@ -229,7 +204,7 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
     //node = gDynamicSurfaces.next;
     //numCollisions += find_wall_collisions_from_list(node, colData);
 
-    node = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next : gStaticSurfaces.next);
+    node = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_WALLS].next : gStaticSurfaces[0].next);
     numCollisions += find_wall_collisions_from_list(node, colData);
 
     // Increment the debug tracker.
@@ -353,7 +328,7 @@ f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface **pceil) {
     //dynamicCeil = find_ceil_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next : gStaticSurfaces.next);
+    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_CEILS].next : gStaticSurfaces[0].next);
     ceil = find_ceil_from_list(surfaceList, x, y, z, &height);
 
     if (dynamicHeight < height) {
@@ -532,7 +507,7 @@ f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor) {
     //dynamicFloor = find_floor_from_list(surfaceList, x, y, z, &dynamicHeight);
 
     // Check for surfaces that are a part of level geometry.
-    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next : gStaticSurfaces.next);
+    surfaceList = (((gCurrentObject == gMarioObject) && (gMarioObject != NULL)) ? gStaticSurfacePartition[SPATIAL_PARTITION_FLOORS].next : gStaticSurfaces[0].next);
     floor = find_floor_from_list(surfaceList, x, y, z, &height);
 
     // To prevent the Merry-Go-Round room from loading when Mario passes above the hole that leads
