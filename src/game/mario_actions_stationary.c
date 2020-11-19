@@ -18,6 +18,11 @@
 
 s32 check_common_idle_cancels(struct MarioState *m) {
     mario_drop_held_object(m);
+    
+    if (m->input & INPUT_OFF_FLOOR) {
+        return set_mario_action(m, ACT_FREEFALL, 0);
+    }
+    
     if (m->floor->normal.y < 0.29237169f) {
         return mario_push_off_steep_floor(m, ACT_FREEFALL, 0);
     }
@@ -28,10 +33,6 @@ s32 check_common_idle_cancels(struct MarioState *m) {
 
     if (m->input & INPUT_A_PRESSED) {
         return set_jumping_action(m, ACT_JUMP, 0);
-    }
-
-    if (m->input & INPUT_OFF_FLOOR) {
-        return set_mario_action(m, ACT_FREEFALL, 0);
     }
 
     if (m->input & INPUT_ABOVE_SLIDE) {

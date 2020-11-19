@@ -35,11 +35,6 @@
 u32 unused80339F10;
 s8 filler80339F1C[20];
 
-struct Surface gDeathFloor = {
-    SURFACE_DEATH_PLANE, 0, 0, 0, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
-    { 0.0f, 1.0f, 0.0f },  0.0f, NULL, NULL,
-};
-
 /**************************************************
  *                    ANIMATIONS                  *
  **************************************************/
@@ -1330,11 +1325,6 @@ void update_mario_geometry_inputs(struct MarioState *m) {
 
     m->floorHeight = find_floor(m->pos[0], m->pos[1], m->pos[2], &m->floor);
 
-    // Disable OoB entirely by making sure Mario always has a "pseudofloor"
-    if (m->floor == NULL) {
-        m->floor = &gDeathFloor;
-    }
-
     m->ceilHeight = vec3f_find_ceil(&m->pos[0], m->floorHeight, &m->ceil);
     gasLevel = find_poison_gas_level(m->pos[0], m->pos[2]);
     m->waterLevel = find_water_level(m->pos[0], m->pos[2]);
@@ -1369,7 +1359,7 @@ void update_mario_geometry_inputs(struct MarioState *m) {
         }
 
     } else {
-        level_trigger_warp(m, WARP_OP_DEATH);
+        m->input |= INPUT_OFF_FLOOR;
     }
 }
 
@@ -1717,11 +1707,6 @@ s32 execute_mario_action(UNUSED struct Object *o) {
         mario_handle_special_floors(gMarioState);
         mario_process_interactions(gMarioState);
 
-        // If Mario is OOB, stop executing actions.
-        if (gMarioState->floor == NULL) {
-            return 0;
-        }
-
         // The function can loop through many action shifts in one frame,
         // which can lead to unexpected sub-frame behavior. Could potentially hang
         // if a loop of actions were found, but there has not been a situation found.
@@ -1766,14 +1751,14 @@ s32 execute_mario_action(UNUSED struct Object *o) {
 
         // Both of the wind handling portions play wind audio only in
         // non-Japanese releases.
-        if (gMarioState->floor->type == SURFACE_HORIZONTAL_WIND) {
+        if (gMarioState->floor && gMarioState->floor->type == SURFACE_HORIZONTAL_WIND) {
             spawn_wind_particles(0, (gMarioState->floor->force << 8));
 #ifndef VERSION_JP
             play_sound(SOUND_ENV_WIND2, gMarioState->marioObj->header.gfx.cameraToObject);
 #endif
         }
 
-        if (gMarioState->floor->type == SURFACE_VERTICAL_WIND) {
+        if (gMarioState->floor && gMarioState->floor->type == SURFACE_VERTICAL_WIND) {
             spawn_wind_particles(1, 0);
 #ifndef VERSION_JP
             play_sound(SOUND_ENV_WIND2, gMarioState->marioObj->header.gfx.cameraToObject);
