@@ -404,16 +404,6 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
     //! The water pseudo floor is not referenced when your intended qstep is
     // out of bounds, so it won't detect you as landing.
 
-    if (floor == NULL) {
-        if (nextPos[1] <= m->floorHeight) {
-            m->pos[1] = m->floorHeight;
-            return AIR_STEP_LANDED;
-        }
-
-        m->pos[1] = nextPos[1];
-        return AIR_STEP_HIT_WALL;
-    }
-
     if ((m->action & ACT_FLAG_RIDING_SHELL) && floorHeight < waterLevel) {
         floorHeight = waterLevel;
         floor = &gWaterSurfacePseudoFloor;
