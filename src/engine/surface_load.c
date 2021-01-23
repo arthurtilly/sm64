@@ -126,11 +126,11 @@ s16 max_3(s16 a0, s16 a1, s16 a2) {
  * @param dynamic Boolean determining whether the surface is static or dynamic
  */
 u32 gCellGridX = 5;
-u32 gCellSizeX = 450;
+u32 gCellSizeX = 1500;
 u32 gCellGridY = 5;
-u32 gCellSizeY = 450;
+u32 gCellSizeY = 1500;
 u32 gCellGridZ = 5;
-u32 gCellSizeZ = 450;
+u32 gCellSizeZ = 1500;
 
 s16 cell_index_to_array(s16 x, s16 y, s16 z) {
     return x + gCellGridX * (z + gCellGridZ * y);

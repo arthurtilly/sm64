@@ -314,6 +314,25 @@ s32 rotateTimer;
 s32 gravAng = 0;
 extern u32 gGlobalTimer;
 
+void calculate_cube_field(Vec3f grav, Vec3f relPos, f32 radius) {
+	s32 i;
+	for (i = 0; i < 3; i++) {
+		if (relPos[i] > radius)
+			grav[i] = relPos[i] - radius;
+		else if (relPos[i] < -radius)
+			grav[i] = relPos[i] + radius;
+		else
+			grav[i] = 0;
+	}
+}
+
+void calculate_cylinder_field(Vec3f grav, Vec3f relPos) {
+	grav[0] = relPos[0];
+	grav[1] = relPos[1];
+	grav[2] = 0.f;
+}
+
+
 void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
@@ -322,31 +341,13 @@ void bhv_mario_update(void) {
 
     clear_dynamic_and_transformed_surfaces();
     
-    if ((gCurrLevelNum == LEVEL_SSL)) {
-        switch (grav) {
-        case 0:
-            vec3f_set(gGravityVector,0,1,0);
-            break;
-        case 1:
-            vec3f_set(gGravityVector,0,-1,0);
-            break;
-        case 2:
-            vec3f_set(gGravityVector,sins(gravAng),0,coss(gravAng));
-            break;
-        }
-        if (gPlayer1Controller->buttonPressed & L_TRIG)
-            grav++;
-        if ((gPlayer1Controller->buttonPressed & U_JPAD) && (!rotateTimer))
-            rotateTimer = 0x10;
-        if (rotateTimer > 0) {
-            gravAng += 0x400;
-            rotateTimer--;
-        }
-        if (grav > 2) grav = 0;
-    }
+	if (gMarioObject->oPosY == 0.f) {
+		gMarioObject->oPosY = 10000.f;
+	}
 
-    if (gCurrLevelNum == LEVEL_WF)
-        vec3f_copy(gGravityVector,&gMarioObject->oPosX);
+    if (gCurrLevelNum == LEVEL_WF) {
+        calculate_cylinder_field(gGravityVector,&gMarioObject->oPosX);
+	}
 
     // Create the matrices from the gravity vector
     create_local_to_world_transform_matrix();
