@@ -986,7 +986,7 @@ u32 set_mario_action(struct MarioState *m, u32 action, u32 actionArg) {
             break;
 
         case ACT_GROUP_AIRBORNE:
-		    m->maxAirFVel = (action == ACT_LONG_JUMP ? 48.f : 32.f);
+            m->maxAirFVel = (action == ACT_LONG_JUMP ? 48.f : 32.f);
             action = set_mario_action_airborne(m, action, actionArg);
             break;
 

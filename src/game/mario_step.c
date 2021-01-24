@@ -425,7 +425,7 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
         m->pos[1] = floorHeight;
         return AIR_STEP_LANDED;
     }
-    
+
     upperWall = resolve_and_return_wall_collisions(nextPos, 150.0f, 50.0f);
     lowerWall = resolve_and_return_wall_collisions(nextPos, 30.0f, 50.0f);
 

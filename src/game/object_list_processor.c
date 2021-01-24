@@ -223,14 +223,6 @@ struct ParticleProperties sParticleTypes[] = {
  * object.
  */
 
-extern u32 gCellGridX;
-extern u32 gCellSizeX;
-extern u32 gCellGridY;
-extern u32 gCellSizeY;
-extern u32 gCellGridZ;
-extern u32 gCellSizeZ;
-s16 get_cell_index(s16 pos, u16 numCells, u32 cellSize, u32 lowerIndex);
- 
 void copy_mario_state_to_object(void) {
     s32 i = 0;
     Mat4 transfMat;
@@ -252,20 +244,12 @@ void copy_mario_state_to_object(void) {
     vec3f_copy(&gCurrentObject->oPosX, gMarioStates[i].pos);
     mtxf_mul_vec3f(gLocalToWorldGravTransformMtx, &gCurrentObject->oPosX);
 
-    print_text_fmt_int(20,20,"%d",get_cell_index(gMarioObject->oPosX, gCellGridX, gCellSizeX, 1));
-    print_text_fmt_int(20,40,"%d",get_cell_index(gMarioObject->oPosX, gCellGridX, gCellSizeX, 2));
-    print_text_fmt_int(40,20,"%d",get_cell_index(gMarioObject->oPosY, gCellGridY, gCellSizeY, 1));
-    print_text_fmt_int(40,40,"%d",get_cell_index(gMarioObject->oPosY, gCellGridY, gCellSizeY, 2));
-    print_text_fmt_int(60,20,"%d",get_cell_index(gMarioObject->oPosZ, gCellGridZ, gCellSizeZ, 1));
-    print_text_fmt_int(60,40,"%d",get_cell_index(gMarioObject->oPosZ, gCellGridZ, gCellSizeZ, 2));
-
-
     // Update Mario's graphical position
     vec3f_copy(gCurrentObject->header.gfx.pos, &gCurrentObject->oPosX);
 
     // Transform Mario's rotation correctly
     mtxf_copy(gCurrentObject->transform,gLocalToWorldGravTransformMtx);
-    // Apply the movement Mario has done in the frame (gMarioStates[i].pos) and rotate him 
+    // Apply the movement Mario has done in the frame (gMarioStates[i].pos) and rotate him
     mtxf_rotate_zxy_and_translate(transfMat, gMarioStates[i].pos, gCurrentObject->header.gfx.angle);
     // Combine with gravity transform matrix
     mtxf_mul(gCurrentObject->transform, transfMat, gCurrentObject->transform);
@@ -351,7 +335,7 @@ void bhv_mario_update(void) {
     s16 yawChange;
 
     clear_dynamic_and_transformed_surfaces();
-    
+
 	if (gMarioObject->oPosY == 0.f) {
 		gMarioObject->oPosY = 10000.f;
 	}
@@ -372,7 +356,7 @@ void bhv_mario_update(void) {
     vec3f_copy(gMarioState->vel, marioVelGrav);
     gMarioState->slideVelX = gMarioState->vel[0];
     gMarioState->slideVelZ = gMarioState->vel[2];
-    
+
     yawChange = gMarioState->faceAngle[1];
 
     // Copy forward velocity and yaw
@@ -388,12 +372,12 @@ void bhv_mario_update(void) {
 
 		gMarioState->forwardVel = newFVel;
     }
-    
+
     yawChange = gMarioState->faceAngle[1] - yawChange;
 
     // Recalculate collision tris
     create_transformed_surfaces(&gMarioObject->oPosX);
-    
+
 
     // Since the rotation is centered around Mario's position and so will have no effect,
     // we don't need to apply the whole matrix, just the translation
@@ -411,16 +395,16 @@ void bhv_mario_update(void) {
     // Update the camera here so we can transform it based on Mario's gravity matrix
     if ((gCurrentArea != NULL) && gUpdateCamera) {
         f32 dist; s16 pitch, yaw;
-        
+
         vec3f_get_dist_and_angle(gLakituState.goalFocus, gLakituState.goalPos, &dist, &pitch, &yaw);
         vec3f_set_dist_and_angle(gLakituState.goalFocus, gLakituState.goalPos, dist, pitch, yaw + yawChange);
-        
+
         vec3f_get_dist_and_angle(gLakituState.curFocus, gLakituState.curPos, &dist, &pitch, &yaw);
         vec3f_set_dist_and_angle(gLakituState.curFocus, gLakituState.curPos, dist, pitch, yaw + yawChange);
-        
+
         vec3f_get_dist_and_angle(gLakituState.focus, gLakituState.pos, &dist, &pitch, &yaw);
         vec3f_set_dist_and_angle(gLakituState.focus, gLakituState.pos, dist, pitch, yaw + yawChange);
-        
+
         gLakituState.yaw += yawChange;
         gLakituState.nextYaw += yawChange;
 
