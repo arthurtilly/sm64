@@ -314,22 +314,33 @@ s32 rotateTimer;
 s32 gravAng = 0;
 extern u32 gGlobalTimer;
 
-void calculate_cube_field(Vec3f grav, Vec3f relPos, f32 radius) {
+f32 vec3f_mag(Vec3f v) {
+	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+}
+
+f32 calculate_cube_field(Vec3f grav, Vec3f relPos, Vec3f radii) {
 	s32 i;
 	for (i = 0; i < 3; i++) {
-		if (relPos[i] > radius)
-			grav[i] = relPos[i] - radius;
-		else if (relPos[i] < -radius)
-			grav[i] = relPos[i] + radius;
+		if (relPos[i] > radii[i])
+			grav[i] = relPos[i] - radii[i];
+		else if (relPos[i] < -radii[i])
+			grav[i] = relPos[i] + radii[i];
 		else
 			grav[i] = 0;
 	}
+	return vec3f_mag(grav);
 }
 
-void calculate_cylinder_field(Vec3f grav, Vec3f relPos) {
+f32 calculate_cylinder_field(Vec3f grav, Vec3f relPos) {
 	grav[0] = relPos[0];
 	grav[1] = relPos[1];
 	grav[2] = 0.f;
+	return sqrtf(v[0] * v[0] + v[1] * v[1]);
+}
+
+f32 calculate_sphere_field(Vec3f grav, Vec3f relPos) {
+	vec3f_copy(grav, relPos);
+	return vec3f_mag(grav);
 }
 
 
