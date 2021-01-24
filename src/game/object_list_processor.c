@@ -335,7 +335,7 @@ f32 calculate_cylinder_field(Vec3f grav, Vec3f relPos) {
 	grav[0] = relPos[0];
 	grav[1] = relPos[1];
 	grav[2] = 0.f;
-	return sqrtf(v[0] * v[0] + v[1] * v[1]);
+	return sqrtf(grav[0] * grav[0] + grav[1] * grav[1]);
 }
 
 f32 calculate_sphere_field(Vec3f grav, Vec3f relPos) {
@@ -377,12 +377,16 @@ void bhv_mario_update(void) {
 
     // Copy forward velocity and yaw
     if (gMarioState->forwardVel != 0.f) {
+		f32 newFVel;
         gMarioState->faceAngle[1] = atan2s(marioAngGrav[2], marioAngGrav[0]);
 
         angToFvel = atan2s(marioVelGrav[2], marioVelGrav[0]) - gMarioState->faceAngle[1];
         marioSpeed = sqrtf(marioVelGrav[0]*marioVelGrav[0] + marioVelGrav[2]*marioVelGrav[2]);
 
-        gMarioState->forwardVel = marioSpeed * coss(angToFvel);
+		newFVel	= marioSpeed * coss(angToFvel);
+		gMarioState->maxAirFVel -= max(gMarioState->forwardVel - newFVel, 0);
+
+		gMarioState->forwardVel = newFVel;
     }
     
     yawChange = gMarioState->faceAngle[1] - yawChange;

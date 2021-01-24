@@ -211,24 +211,24 @@ void update_air_with_turn(struct MarioState *m) {
 
 void update_air_without_turn(struct MarioState *m) {
     f32 sidewaysSpeed = 0.0f;
-    f32 dragThreshold;
     s16 intendedDYaw;
     f32 intendedMag;
 
     if (!check_horizontal_wind(m)) {
-        dragThreshold = m->action == ACT_LONG_JUMP ? 48.0f : 32.0f;
         m->forwardVel = approach_f32(m->forwardVel, 0.0f, 0.35f, 0.35f);
 
         if (m->input & INPUT_NONZERO_ANALOG) {
             intendedDYaw = m->intendedYaw - m->faceAngle[1];
             intendedMag = m->intendedMag / 32.0f;
 
-            m->forwardVel += intendedMag * coss(intendedDYaw) * 1.5f;
+            if (m->forwardVel < m->maxAirFVel) {
+				m->forwardVel += intendedMag * coss(intendedDYaw) * 1.5f;
+			}
             sidewaysSpeed = intendedMag * sins(intendedDYaw) * 10.0f;
         }
 
         //! Uncapped air speed. Net positive when moving forward.
-        if (m->forwardVel > dragThreshold) {
+        if (m->forwardVel > m->maxAirFVel) {
             m->forwardVel -= 1.0f;
         }
         if (m->forwardVel < -16.0f) {
