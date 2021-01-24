@@ -118,12 +118,12 @@ s16 max_3(s16 a0, s16 a1, s16 a2) {
     return a0;
 }
 
-u32 gCellGridX = 5;
-u32 gCellSizeX = 1500;
-u32 gCellGridY = 5;
-u32 gCellSizeY = 1500;
-u32 gCellGridZ = 5;
-u32 gCellSizeZ = 1500;
+u32 gCellGridX = 2;
+u32 gCellSizeX = 2500;
+u32 gCellGridY = 2;
+u32 gCellSizeY = 2500;
+u32 gCellGridZ = 30;
+u32 gCellSizeZ = 1000;
 
 enum CellIndexOffsets {
     CELL_OFFSET_NONE,
@@ -605,8 +605,6 @@ void create_transformed_surfaces(Vec3f pos) {
         newNode->next = list->next;
         list->next = newNode;
     }
-
-    print_text_fmt_int(100,100,"%d",count);
 
     gDynamicSurfaces.next = NULL;
 }
